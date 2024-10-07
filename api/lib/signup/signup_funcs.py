@@ -15,7 +15,7 @@ def add_login_information(user):
     elif user['ACCOUNT_TYPE'] == 2:
         account_type = models.AccountType.STUDENT
 
-    #If there is a user with that username or email, return False
+    #If there is a user with the same username or email, return False
     if len(models.LoginInformation.query.filter(models.LoginInformation.username == user["USERNAME"]).all()) == 1 or len(models.LoginInformation.query.filter(models.LoginInformation.email == user["EMAIL"]).all()) == 1:
         return False
     

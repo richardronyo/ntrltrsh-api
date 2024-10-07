@@ -14,4 +14,4 @@ def new_user():
 def login():
     user = request.get_json()
 
-    return jsonify(login_verification(user))
+    return jsonify(login_verification(user)), 200
