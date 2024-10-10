@@ -2,7 +2,7 @@ from api import models, db
 
 def add_login_information(user):
     """
-    This function adds a row to the LoginInformation table
+    This function adds a row to the LoginInformation table. Called by accessing /api/signup/logininformation
     {
         "ACCOUNT_TYPE": <account_type>,
         "USERNAME": <username>,

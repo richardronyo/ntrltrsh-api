@@ -2,7 +2,7 @@ from api import models, db
 
 def login_verification(user):
     """
-    This function will check if the username and password sent in the JSON is the same as one in the database.
+    This function will check if the username and password sent in the JSON is the same as one in the database. Called by accessing the api/login/ route
     {
         "USERNAME_OR_EMAIL": <username or email>,
         "PASSWORD": <password>
