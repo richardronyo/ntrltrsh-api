@@ -7,6 +7,11 @@ def login_verification(user):
         "USERNAME_OR_EMAIL": <username or email>,
         "PASSWORD": <password>
     }
+
+    Will return a JSON with the following format:
+    {
+        "LOGIN": True or False
+    }
     """
     username_or_email = user["USERNAME_OR_EMAIL"]
     password = user["PASSWORD"]
@@ -17,6 +22,6 @@ def login_verification(user):
 
     #If the username/email is correct, and it matches the stored password, the user can successfully login
     if ((user_email is not None and user_email.password == password) or (user_username is not None and user_username.password == password)):
-        return True
+        return {"LOGIN": True}
     
-    return False
+    return {"LOGIN": False}    
