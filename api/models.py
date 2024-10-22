@@ -65,12 +65,10 @@ class PersonalInformation(db.Model):
     user_id = db.Column(db.String(36), db.ForeignKey('login_information.id'), unique=True)
     first_name = db.Column(db.VARCHAR(1000), default=None, nullable=True)
     last_name = db.Column(db.VARCHAR(1000), default=None, nullable=True)
-    date_of_birth = db.Column(db.DateTime(), default=None, nullable=True)
 
-    def __init__(self, first_name, last_name, date_of_birth, user_id):
+    def __init__(self, first_name, last_name, user_id):
         self.first_name = first_name
         self.last_name = last_name
-        self.date_of_birth = date_of_birth
         self.user_id = user_id
 
 
@@ -78,7 +76,6 @@ class PersonalInformation(db.Model):
         return {
             "First Name": self.first_name,
             "Last Name": self.last_name,
-            "Date of Birth": self.date_of_birth.strftime('%A, %B %d, %Y')
         }
 
 class StudentInformation(db.Model):
