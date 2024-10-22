@@ -1,27 +1,42 @@
 from api import models, db
 
+import jwt
+import datetime
+from flask import current_app
+
 def login_verification(user):
     """
-    This function will check if the username and password sent in the JSON is the same as one in the database. Called by accessing the api/login/ route
+    Verifies the username and password and returns a JWT token if login is successful.
     {
         "USERNAME_OR_EMAIL": <username or email>,
         "PASSWORD": <password>
     }
 
-    Will return a JSON with the following format:
+    Returns:
     {
-        "LOGIN": True or False
+        "LOGIN": True or False,
+        "token": <jwt_token> (only if login is successful)
     }
     """
     username_or_email = user["USERNAME_OR_EMAIL"]
     password = user["PASSWORD"]
 
-    #These lines will return the row that the username or email provided by the user is found. They will return None if otherwise
+    # Check if username/email exists and verify password
     user_email = models.LoginInformation.query.filter(models.LoginInformation.email == username_or_email).one_or_none()
     user_username = models.LoginInformation.query.filter(models.LoginInformation.username == username_or_email).one_or_none()
 
-    #If the username/email is correct, and it matches the stored password, the user can successfully login
-    if ((user_email is not None and user_email.password == password) or (user_username is not None and user_username.password == password)):
-        return {"LOGIN": True}
-    
-    return {"LOGIN": False}    
+    if (user_email is not None and user_email.password == password) or (user_username is not None and user_username.password == password):
+        # User authenticated successfully, generate JWT token
+        payload = {
+            "user_id": user_email.id if user_email else user_username.id,  # Include user_id or any user info you need
+            "exp": datetime.datetime.utcnow() + datetime.timedelta(hours=1)  # Token expiry (1 hour)
+        }
+        secret_key = current_app.config['SECRET_KEY']  # Use the Flask app's secret key
+        token = jwt.encode(payload, secret_key, algorithm="HS256")
+
+        return {
+            "LOGIN": True,
+            "token": token
+        }
+
+    return {"LOGIN": False}

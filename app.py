@@ -8,5 +8,7 @@ app.register_blueprint(signup_route, url_prefix="/api/signup")
 app.register_blueprint(admin_route, url_prefix="/api/admin")
 app.register_blueprint(login_route, url_prefix="/api/login")
 
+#Key that will be used to generate tokens
+app.config['SECRET_KEY'] = "NTRLTRSH"
 if __name__ == '__main__':
     app.run(debug=True)
