@@ -28,8 +28,7 @@ def login_verification(user):
     if (user_email is not None and user_email.password == password) or (user_username is not None and user_username.password == password):
         # User authenticated successfully, generate JWT token
         payload = {
-            "user_id": user_email.id if user_email else user_username.id,  # Include user_id or any user info you need
-            "exp": datetime.datetime.utcnow() + datetime.timedelta(hours=1)  # Token expiry (1 hour)
+            "user_id": user_email.id if user_email else user_username.id  # Include user_id or any user info you need
         }
         secret_key = current_app.config['SECRET_KEY']  # Use the Flask app's secret key
         token = jwt.encode(payload, secret_key, algorithm="HS256")
