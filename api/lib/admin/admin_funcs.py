@@ -15,8 +15,11 @@ def clear_database():
     #Clearing all the users in the database
     users = db.session.query(models.LoginInformation).all()
     personal_info = db.session.query(models.PersonalInformation).all()
+    schedules = db.session.query(models.Availability).all()
 
     db.session.execute(text('SET CONSTRAINTS ALL IMMEDIATE'))
+    for schedule in schedules:
+        db.session.delete(schedule)
     for user in personal_info:
         db.session.delete(user)
     for user in users:
