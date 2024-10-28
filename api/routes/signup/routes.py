@@ -4,6 +4,8 @@ from flask import request, jsonify
 
 from api.lib.signup.signup_funcs import add_login_information, add_personal_information, generate_token
 
+from api.lib.Security.AESPython import update_password_field
+
 
 @signup_route.route('/page1', methods=["POST"])
 def new_user():
@@ -18,8 +20,8 @@ def new_user():
         "LAST_NAME": <last_name>
     }
     """
-    user = request.get_json()
-
+    user = request.get_json() #Convert json to a dictionary
+    user = update_password_field(user) #This function hashs the password, and joins the salt and hashed password together
     added_login_info = add_login_information(user)
     added_personal_info = add_personal_information(user)
 
