@@ -23,11 +23,12 @@ def update():
 
     # Access `current_user` directly to get the user ID
     user_id = current_user.id
+    account_type = current_user.account_type
 
     # Get the JSON payload with availability information
     availability_info = request.get_json()
 
     # Call the update function with availability info and user_id
-    return jsonify(update_availability(availability_info, user_id)), 200
+    return jsonify(update_availability(availability_info, user_id, account_type)), 200
 
 

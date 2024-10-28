@@ -123,6 +123,8 @@ class TutorInformation(db.Model):
 class Availability(db.Model):
     id = db.Column(db.Integer, primary_key=True, unique=True, nullable=False)
     user_id = db.Column(db.String(36), db.ForeignKey('login_information.id'), unique=True)
+    schedule_type = db.Column(db.Enum(AccountType), default=AccountType.TUTOR, nullable=False)
+
     month = db.Column(db.String, nullable=False) #ie. 2024-09
 
     """
@@ -140,8 +142,11 @@ class Availability(db.Model):
 
     vacation_days = db.Column(JSON, nullable=False) #A list of the days a tutor is unavailable to work [day1, day2, ..., dayk] in YYYY-MM-DD
 
-    def __init__(self, user_id, mon, tue, wed, thurs, fri, sat, sun, vacation_days):
+
+
+    def __init__(self, user_id, account_type, mon, tue, wed, thurs, fri, sat, sun, vacation_days):
         self.user_id = user_id
+        self.schedule_type = account_type
         self.mon_avail = mon
         self.tue_avail = tue
         self.wed_avail = wed
