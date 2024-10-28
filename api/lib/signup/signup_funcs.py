@@ -1,5 +1,6 @@
 from api import models, db
 from flask import current_app
+from flask_jwt_extended import create_access_token, jwt_required
 
 import jwt
 def add_login_information(user):
@@ -69,13 +70,8 @@ def generate_token(user):
     if user_id is None:
         return {"SIGNUP": False}
     
-    payload = {
-        "user_id": user_id
-    }
-
-    secret_key = current_app.config["SECRET_KEY"]
-    token = jwt.encode(payload, secret_key, algorithm="HS256")
-
+    token = create_access_token(identity = user_id)
+    
     return {
         "SIGNUP": True,
         "token": token

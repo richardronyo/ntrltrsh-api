@@ -3,11 +3,9 @@ import uuid
 
 from flask import Blueprint
 from datetime import datetime
-
 from sqlalchemy import func
 from sqlalchemy.orm import relationship
 from sqlalchemy.dialects.postgresql import ARRAY, JSON
-
 from api import db
 
 class AccountType(enum.Enum):
@@ -43,7 +41,7 @@ class LoginInformation(db.Model):
     password = db.Column(db.VARCHAR(1000), default=None, nullable=True)
     account_type = db.Column(db.Enum(AccountType), default=AccountType.STUDENT, nullable=True)
     date_created = db.Column(db.DateTime, nullable=False)
-
+    
     def __init__(self, email, username, password, account_type):
         self.email = email
         self.username = username
@@ -61,16 +59,17 @@ class LoginInformation(db.Model):
         }
 
 class PersonalInformation(db.Model):
+    __tablename__ = 'personal_information'
     id = db.Column(db.Integer, primary_key=True, unique=True, nullable=False)
-    user_id = db.Column(db.String(36), db.ForeignKey('login_information.id'), unique=True)
+    user_id = db.Column(db.String(36), db.ForeignKey('login_information.id', ondelete='CASCADE'), unique=True)
     first_name = db.Column(db.VARCHAR(1000), default=None, nullable=True)
     last_name = db.Column(db.VARCHAR(1000), default=None, nullable=True)
+    
 
     def __init__(self, first_name, last_name, user_id):
         self.first_name = first_name
         self.last_name = last_name
         self.user_id = user_id
-
 
     def to_dict(self):
         return {
@@ -84,7 +83,8 @@ class StudentInformation(db.Model):
     grade_level = db.Column(db.Enum(EducationLevel), default=None, nullable=True)
     subjects = db.Column(ARRAY(db.Integer), nullable=False, default=list)
 
-    def __init__(self, grade_level, subjects):
+    def __init__(self, user_id, grade_level, subjects):
+        self.user_id = user_id
         self.grade_level = grade_level
         self.subjects = subjects
 
@@ -103,7 +103,8 @@ class TutorInformation(db.Model):
     completed_education = db.Column(db.Boolean, default=True, nullable=False)
     training_complete = db.Column(db.Boolean, default=False, nullable=False)
 
-    def __init__(self, subjects, experience, attempted_education, completed_education, training_complete = False):
+    def __init__(self, user_id, subjects, experience, attempted_education, completed_education, training_complete = False):
+        self.user_id = user_id
         self.subjects = subjects
         self.experience = experience
         self.attempted_education = attempted_education
@@ -123,16 +124,55 @@ class Availability(db.Model):
     id = db.Column(db.Integer, primary_key=True, unique=True, nullable=False)
     user_id = db.Column(db.String(36), db.ForeignKey('login_information.id'), unique=True)
     month = db.Column(db.String, nullable=False) #ie. 2024-09
-    availability = db.Column(JSON, nullable=False)
 
-    def __init__(self, month, availaibility):
-        self.month = month
-        self.availability = availaibility
+    """
+    The availability columns will be a JSON object with the following structure:
+        [<start_time>, <end_time>]
+
+    """
+    mon_avail = db.Column(JSON, nullable=True) 
+    tue_avail = db.Column(JSON, nullable=True)
+    wed_avail = db.Column(JSON, nullable=True)
+    thurs_avail = db.Column(JSON, nullable=True)
+    fri_avail = db.Column(JSON, nullable=True)
+    sat_avail = db.Column(JSON, nullable=True)
+    sun_avail = db.Column(JSON, nullable=True)
+
+    vacation_days = db.Column(JSON, nullable=False) #A list of the days a tutor is unavailable to work [day1, day2, ..., dayk] in YYYY-MM-DD
+
+    def __init__(self, user_id, mon, tue, wed, thurs, fri, sat, sun, vacation_days):
+        self.user_id = user_id
+        self.mon_avail = mon
+        self.tue_avail = tue
+        self.wed_avail = wed
+        self.thurs_avail = thurs
+        self.fri_avail = fri
+        self.sat_avail = sat
+        self.sun_avail = sun
+        self.vacation_days = vacation_days
+
+        now = datetime.now()
+        self.month = str(now.year) + "-" + str(now.month)
 
     def to_dict(self):
         return{
             "Month": self.month,
             "Availability": self.availability
         }
+    
+class Messaging(db.Model):
+    id = db.Column(db.Integer, primary_key=True, unique=True, nullable=False)
+    sender_id = db.Column(db.String(36), default=None, nullable=False)
+    receiver_id = db.Column(db.String(36), default=None, nullable=False)
+    message = db.Column(db.Text, default=None, nullable=False)
+    time_sent = db.Column(db.DateTime, nullable=False)
+
+    def __init__(self, sender_id, receiver_id, message, time_sent):
+        self.sender_id = sender_id
+        self.receiver_id = receiver_id
+        self.message = message
+        self.time_sent = datetime.utcnow()
+
+
 
         
