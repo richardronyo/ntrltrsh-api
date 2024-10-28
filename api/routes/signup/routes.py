@@ -25,7 +25,8 @@ def new_user():
     added_login_info = add_login_information(user)
     added_personal_info = add_personal_information(user)
 
-    result = generate_token(user)
+    if added_login_info and added_personal_info:
+        result = generate_token(user)
 
     if result["SIGNUP"]:
         return jsonify(result), 200
