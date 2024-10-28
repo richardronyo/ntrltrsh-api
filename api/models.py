@@ -124,7 +124,6 @@ class Availability(db.Model):
     id = db.Column(db.Integer, primary_key=True, unique=True, nullable=False)
     user_id = db.Column(db.String(36), db.ForeignKey('login_information.id'), unique=True)
     schedule_type = db.Column(db.Enum(AccountType), default=AccountType.TUTOR, nullable=False)
-
     month = db.Column(db.String, nullable=False) #ie. 2024-09
 
     """
