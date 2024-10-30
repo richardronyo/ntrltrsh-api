@@ -1,8 +1,8 @@
 from api.routes.signup import signup_route
 
 from flask import request, jsonify
-
-from api.lib.signup.signup_funcs import add_login_information, add_personal_information, generate_token
+from flask_jwt_extended import jwt_required, current_user
+from api.lib.signup.signup_funcs import add_login_information, add_personal_information, generate_token, add_subjects
 
 from api.lib.Security.AESPython import update_password_field
 
@@ -32,6 +32,28 @@ def new_user():
         return jsonify(result), 200
     
     return jsonify(result), 401
+
+@signup_route.route('/subjects', methods=["POST"])
+@jwt_required()
+def subjects():
+    """
+    This function adds subjects to the TutorInformation table (students in the future)
+    {
+        "MATH": [<int>, ..., <int>]
+        "SCIENCE": [<int>, ..., <int>]
+        "LANGUAGE": [<int>, ..., <int>]
+        "ENGLISH": [<int>, ..., <int>]
+        "HISTORY": [<int>, ..., <int>]
+
+    }
+    """
+
+    user_id = current_user.id
+    subjects = request.get_json()
+
+    return jsonify(add_subjects(subjects, user_id))
+
+
     
 
 

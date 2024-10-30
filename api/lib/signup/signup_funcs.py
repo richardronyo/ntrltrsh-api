@@ -2,7 +2,6 @@ from api import models, db
 from flask import current_app
 from flask_jwt_extended import create_access_token, jwt_required
 
-import jwt
 def add_login_information(user):
     """
     This function adds a row to the LoginInformation table. Called by accessing /api/signup/logininformation
@@ -76,3 +75,36 @@ def generate_token(user):
         "SIGNUP": True,
         "token": token
     }
+
+def add_subjects(subjects, user_id):
+    """
+    This function adds subjects to the tables of tutors (students in the future)
+    {
+        "MATH": [<int>, ..., <int>]
+        "SCIENCE": [<int>, ..., <int>]
+        "LANGUAGE": [<int>, ..., <int>]
+        "ENGLISH": [<int>, ..., <int>]
+        "HISTORY": [<int>, ..., <int>]
+
+    }
+    """
+
+    math = [models.Math(value) for value in subjects['MATH']]
+    science = [models.Science(value) for value in subjects['SCIENCE']]
+    language = [models.Language(value) for value in subjects['LANGUAGE']]
+    english = [models.English(value) for value in subjects['ENGLISH']]
+    history = [models.History(value) for value in subjects['HISTORY']]
+
+    tutor = models.TutorInformation(user_id, math=math, science=science, language=language, english=english, history=history)
+
+    db.session.add(tutor)
+    db.session.commit()
+
+    return True
+            
+
+
+
+
+
+

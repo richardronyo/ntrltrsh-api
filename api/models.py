@@ -19,13 +19,57 @@ class EducationLevel(enum.Enum):
     HIGH_SCHOOL = 3
     UNIVERSITY = 4
 
-class Subject(enum.Enum):
-    MATHEMATICS = 1
-    ENGLISH = 2
-    SCIENCE = 3
-    BIOLOGY = 4
-    CHEMISTRY = 5
-    PHYSICS = 6
+class Math(enum.Enum):
+    ALGEBRA = 1
+    CALCULUS = 2
+    GEOMETRY = 3
+    TRIGONOMETRY = 4
+    STATISTICS = 5
+    PROBABILITY = 6
+    DIFFERENTIAL_EQUATIONS = 7
+    LINEAR_ALGEBRA = 8
+
+class Science(enum.Enum):
+    PHYSICS = 1
+    CHEMISTRY = 2
+    BIOLOGY = 3
+    EARTH_SCIENCE = 4
+    ASTRONOMY = 5
+    ENVIRONMENTAL_SCIENCE = 6
+    BOTANY = 7
+    ZOOLOGY = 8
+
+class Language(enum.Enum):
+    FRENCH = 1
+    SPANISH = 2
+    GERMAN = 3
+    CHINESE = 4
+    JAPANESE = 5
+    RUSSIAN = 6
+    ITALIAN = 7
+    ARABIC = 8
+
+class English(enum.Enum):
+    LITERATURE = 1
+    GRAMMAR = 2
+    WRITING = 3
+    POETRY = 4
+    DRAMA = 5
+    ESSAY_WRITING = 6
+    CRITICAL_ANALYSIS = 7
+    CREATIVE_WRITING = 8
+
+class History(enum.Enum):
+    ANCIENT = 1
+    MEDIEVAL = 2
+    MODERN = 3
+    WORLD_WAR_I = 4
+    WORLD_WAR_II = 5
+    AMERICAN_REVOLUTION = 6
+    INDUSTRIAL_REVOLUTION = 7
+    COLD_WAR = 8
+
+
 
 class Experience(enum.Enum):
     ZERO = 0
@@ -41,6 +85,8 @@ class LoginInformation(db.Model):
     password = db.Column(db.VARCHAR(1000), default=None, nullable=True)
     account_type = db.Column(db.Enum(AccountType), default=AccountType.STUDENT, nullable=True)
     date_created = db.Column(db.DateTime, nullable=False)
+    registration_complete = db.Column(db.Boolean, default = False, nullable = True)
+    date_complete = db.Column(db.DateTime, nullable=True)
     
     def __init__(self, email, username, password, account_type):
         self.email = email
@@ -48,6 +94,7 @@ class LoginInformation(db.Model):
         self.password = password
         self.account_type = account_type
         self.date_created = datetime.utcnow()
+        self.registration_complete = False
 
     def to_dict(self):
         return {
@@ -55,7 +102,9 @@ class LoginInformation(db.Model):
             'Username': self.username,
             'Password': self.password,
             'Account Type': self.account_type.name,
-            'Date Created': self.date_created.isoformat()
+            'Date Created': self.date_created.isoformat(),
+            "Registration Status": "Complete" if self.registration_complete else "Incomplete",
+            "Date Complete": self.date_complete.isoformat() if self.registration_complete else "Incomplete"
         }
 
 class PersonalInformation(db.Model):
@@ -81,42 +130,65 @@ class StudentInformation(db.Model):
     id = db.Column(db.Integer, primary_key=True, unique=True, nullable=False)
     user_id = db.Column(db.String(36), db.ForeignKey('login_information.id'), unique=True)
     grade_level = db.Column(db.Enum(EducationLevel), default=None, nullable=True)
-    subjects = db.Column(ARRAY(db.Integer), nullable=False, default=list)
+    math = db.Column(ARRAY(db.Enum(Math)), nullable=True)
+    science = db.Column(ARRAY(db.Enum(Science)), nullable=True)
+    language = db.Column(ARRAY(db.Enum(Language)), nullable=True)
+    english = db.Column(ARRAY(db.Enum(English)), nullable=True)
+    history = db.Column(ARRAY(db.Enum(History)), nullable=True)
 
-    def __init__(self, user_id, grade_level, subjects):
+    def __init__(self, user_id, grade_level, math, science, language, english, history):
         self.user_id = user_id
         self.grade_level = grade_level
-        self.subjects = subjects
+        self.math = math
+        self.science = science
+        self.language = language
+        self.english = english
+        self.history = history
 
     def to_dict(self):
         return {
-            "Grade Level": self.grade_level.name,
-            "Subjects": [Subject(subject).name for subject in self.subjects]
+            "Grade Level": self.grade_level.name if self.grade_level else None,
+            "Math": [subject.name for subject in self.math] if self.math else [],
+            "Science": [subject.name for subject in self.science] if self.science else [],
+            "Language": [subject.name for subject in self.language] if self.language else [],
+            "English": [subject.name for subject in self.english] if self.english else [],
+            "History": [subject.name for subject in self.history] if self.history else []
         }
 
 class TutorInformation(db.Model):
     id = db.Column(db.Integer, primary_key=True, unique=True, nullable=False)
     user_id = db.Column(db.String(36), db.ForeignKey('login_information.id'), unique=True)
-    subjects = db.Column(ARRAY(db.Integer), nullable=False, default=list)
+    math = db.Column(ARRAY(db.Enum(Math)), nullable=True)
+    science = db.Column(ARRAY(db.Enum(Science)), nullable=True)
+    language = db.Column(ARRAY(db.Enum(Language)), nullable=True)
+    english = db.Column(ARRAY(db.Enum(English)), nullable=True)
+    history = db.Column(ARRAY(db.Enum(History)), nullable=True)
     experience = db.Column(db.Enum(Experience), default=None, nullable=True)
-    attempted_education = db.Column(db.VARCHAR(1000), default=None, nullable=False)
-    completed_education = db.Column(db.Boolean, default=True, nullable=False)
+    undergrad_college = db.Column(db.VARCHAR(1000), default = None, nullable = True)
+    undergrad_complete = db.Column(db.Boolean, default=False, nullable=True)
+    graduate_college = db.Column(ARRAY(db.VARCHAR(1000)), default = None, nullable = True)
+    graduate_completed = db.Column(ARRAY(db.Boolean), default = None, nullable = True)
+    teaching_certification = db.Column(db.VARCHAR(1000), default = None, nullable = True)
     training_complete = db.Column(db.Boolean, default=False, nullable=False)
 
-    def __init__(self, user_id, subjects, experience, attempted_education, completed_education, training_complete = False):
+    def __init__(self, user_id, math, science, language, english, history):
         self.user_id = user_id
-        self.subjects = subjects
-        self.experience = experience
-        self.attempted_education = attempted_education
-        self.completed_education = completed_education
-        self.training_complete = training_complete
+        self.math = math
+        self.science = science
+        self.language = language
+        self.english = english
+        self.history = history
 
     def to_dict(self):
         return {
-            "Subjects": [Subject(subject).name for subject in self.subjects],
-            "Years of Experience": self.experience,
-            "Highest Attempted Education Level": self.attempted_education,
-            f"Completed {self.attempted_education}": self.completed_education,
+            "Math": [subject.name for subject in self.math] if self.math else [],
+            "Science": [subject.name for subject in self.science] if self.science else [],
+            "Language": [subject.name for subject in self.language] if self.language else [],
+            "English": [subject.name for subject in self.english] if self.english else [],
+            "History": [subject.name for subject in self.history] if self.history else [],
+            "Years of Experience": self.experience,            
+            "Undergraduate Studies": self.undergrad_college if self.undergrad_complete else f"{self.undergrad_college} (Incomplete)",
+            "Graduate Studies": [f"{self.graduate_college[i]} (Incomplete)" if not self.graduate_completed[i] else f"{self.graduate_college[i]}" for i in range(len(self.graduate_college))],
             "Completed Onboarding Training": self.training_complete
         }
 
