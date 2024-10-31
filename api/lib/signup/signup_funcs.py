@@ -112,7 +112,7 @@ def add_education_info(ed_info, user_id):
         "GRAD_TYPE_1": STR,
         "GRAD_COLLEGE_2": STR,
         "GRAD_TYPE_2": STR,
-        "TEACHING_CERTIFICATION": STR
+        "CERTIFICATION": STR
     }
     """
 
@@ -122,7 +122,7 @@ def add_education_info(ed_info, user_id):
     grad_college = [ed_info[key] for key in ["GRAD_COLLEGE_1", "GRAD_COLLEGE_2"] if ed_info[key] != ""]
     grad_major = [ed_info[key] for key in ["GRAD_TYPE_1", "GRAD_TYPE_2"] if ed_info[key] != ""]
 
-    teaching_certification = ed_info["TEACHING_CERTIFICATION"]
+    teaching_certification = ed_info["CERTIFICATION"]
     tutor = models.TutorInformation.query.filter(models.TutorInformation.user_id == user_id).one_or_none()
 
     if tutor is None:
