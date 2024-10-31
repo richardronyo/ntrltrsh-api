@@ -170,7 +170,9 @@ class TutorInformation(db.Model):
     graduate_major = db.Column(ARRAY(db.VARCHAR(1000)), default = None, nullable = True)
     teaching_certification = db.Column(db.VARCHAR(1000), default = None, nullable = True)
     training_complete = db.Column(db.Boolean, default=False, nullable=False)
-
+    profile_headline = db.Column(db.String, nullable = True)
+    bio = db.Column(db.String, nullable = True)
+    
     def __init__(self, user_id, math, science, language, english, history):
         self.user_id = user_id
         self.math = math

@@ -2,7 +2,7 @@ from api.routes.signup import signup_route
 
 from flask import request, jsonify
 from flask_jwt_extended import jwt_required, current_user
-from api.lib.signup.signup_funcs import add_login_information, add_personal_information, generate_token, add_subjects, add_education_info
+from api.lib.signup.signup_funcs import add_login_information, add_personal_information, generate_token, add_subjects, add_education_info, add_profile_info
 
 from api.lib.Security.AESPython import update_password_field
 
@@ -74,8 +74,22 @@ def education():
     ed_info = request.get_json()
 
     return jsonify(add_education_info(ed_info, user_id)), 200
-#Create Info Route for Tutors
 
+#Create Info Route for Tutors
+@signup_route.route('/tutor_profile', methods=["POST"])
+@jwt_required()
+def profile():
+    """
+    This function adds profile information to the TutorInformation table
+    {
+        "HEADLINE": str,
+        "BIO": str
+    }
+    """
+    user_id = current_user.id
+    profile_info = request.get_json()
+
+    return jsonify(add_profile_info(profile_info, user_id)), 200
 #Upload Profile Picture for Tutors
 
 #Upload Multiple Files for Tutors

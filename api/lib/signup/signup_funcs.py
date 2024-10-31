@@ -140,7 +140,25 @@ def add_education_info(ed_info, user_id):
             
 
 
+def add_profile_info(profile_info, user_id):
+    """
+    This function adds profile information to the TutorInformation table
+    {
+        "HEADLINE": str,
+        "BIO": str
+    }
+    """
+    profile_headline = profile_info["HEADLINE"]
+    bio = profile_info["BIO"]
 
+    tutor = models.TutorInformation.query.filter(models.TutorInformation.user_id == user_id).one_or_none()
 
-
+    if tutor is None:
+        return False    
+    
+    tutor.profile_headline = profile_headline
+    tutor.bio = bio
+    db.session.commit()
+    
+    return True
 
