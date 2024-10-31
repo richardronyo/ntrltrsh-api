@@ -2,6 +2,8 @@ from api import models, db
 from flask import current_app
 from flask_jwt_extended import create_access_token, jwt_required
 
+from datetime import datetime
+
 def add_login_information(user):
     """
     This function adds a row to the LoginInformation table. Called by accessing /api/signup/logininformation
@@ -159,6 +161,29 @@ def add_profile_info(profile_info, user_id):
     tutor.profile_headline = profile_headline
     tutor.bio = bio
     db.session.commit()
-    
+
     return True
+
+def onboarding_complete(completion_info, user_id):
+    """
+    This function completes the columns related to profile registration in the LoginInformation table
+    {
+        "COMPLETE": Boolean,
+        "DATE": String
+    }
+    """
+    complete = completion_info["COMPLETE"]
+    date = completion_info["DATE"]
+    
+    tutor = models.LoginInformation.query.filter(models.LoginInformation.id == user_id).one_or_none()
+
+    if complete and tutor is not None:
+        tutor.registration_complete = True
+        tutor.date_complete = datetime.strptime(date, "%Y-%m-%d %H:%M:%S")
+        db.session.commit()
+
+        return True
+    
+    return False
+
 

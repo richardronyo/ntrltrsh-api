@@ -2,7 +2,7 @@ from api.routes.signup import signup_route
 
 from flask import request, jsonify
 from flask_jwt_extended import jwt_required, current_user
-from api.lib.signup.signup_funcs import add_login_information, add_personal_information, generate_token, add_subjects, add_education_info, add_profile_info
+from api.lib.signup.signup_funcs import add_login_information, add_personal_information, generate_token, add_subjects, add_education_info, add_profile_info, onboarding_complete
 
 from api.lib.Security.AESPython import update_password_field
 
@@ -90,6 +90,21 @@ def profile():
     profile_info = request.get_json()
 
     return jsonify(add_profile_info(profile_info, user_id)), 200
+
+@signup_route.route('/onboarding_complete', methods=["POST"])
+@jwt_required()
+def complete():
+    """
+    This function completes the columns related to profile registration in the LoginInformation table
+    {
+        "COMPLETE": Boolean,
+        "DATE": String
+    }
+    """
+    user_id = current_user.id
+    completion_info = request.get_json()
+
+    return jsonify(onboarding_complete(completion_info, user_id))
 #Upload Profile Picture for Tutors
 
 #Upload Multiple Files for Tutors
