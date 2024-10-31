@@ -2,7 +2,7 @@ from api.routes.signup import signup_route
 
 from flask import request, jsonify
 from flask_jwt_extended import jwt_required, current_user
-from api.lib.signup.signup_funcs import add_login_information, add_personal_information, generate_token, add_subjects
+from api.lib.signup.signup_funcs import add_login_information, add_personal_information, generate_token, add_subjects, add_education_info
 
 from api.lib.Security.AESPython import update_password_field
 
@@ -44,14 +44,42 @@ def subjects():
         "LANGUAGE": [<int>, ..., <int>]
         "ENGLISH": [<int>, ..., <int>]
         "HISTORY": [<int>, ..., <int>]
-
+pg
     }
     """
 
     user_id = current_user.id
-    subjects = request.get_json()
+    subjects = request.get_json(200)
 
     return jsonify(add_subjects(subjects, user_id))
+
+#Create Education Route for Tutors
+@signup_route.route('/education', methods=["POST"])
+@jwt_required()
+def education():
+    """
+    This function adds education information to the TutorInformation table
+    {
+        "UNDERGRAD_COLLEGE": str,
+        "UNDERGRAD_MAJOR": str,
+        "GRAD_COLLEGE_1": str,
+        "GRAD_TYPE_1": str,
+        "GRAD_COLLEGE_2": str,
+        "GRAD_TYPE_2": str,
+        "CERTIFICATION": str
+    }
+    """
+
+    user_id = current_user.id
+    ed_info = request.get_json()
+
+    return jsonify(add_education_info(ed_info, user_id)), 200
+#Create Info Route for Tutors
+
+#Upload Profile Picture for Tutors
+
+#Upload Multiple Files for Tutors
+
 
 
     

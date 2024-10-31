@@ -78,7 +78,7 @@ def generate_token(user):
 
 def add_subjects(subjects, user_id):
     """
-    This function adds subjects to the tables of tutors (students in the future)
+    This function adds subjects to the TutorInformation table (students in the future)
     {
         "MATH": [<int>, ..., <int>]
         "SCIENCE": [<int>, ..., <int>]
@@ -98,6 +98,42 @@ def add_subjects(subjects, user_id):
     tutor = models.TutorInformation(user_id, math=math, science=science, language=language, english=english, history=history)
 
     db.session.add(tutor)
+    db.session.commit()
+
+    return {"SUCCESS": True}
+
+def add_education_info(ed_info, user_id):
+    """
+    This function adds education info the the TutorInformation table
+    {
+        "UNDERGRAD_COLLEGE": STR,
+        "UNDERGRAD_MAJOR": STR,
+        "GRAD_COLLEGE_1": STR,
+        "GRAD_TYPE_1": STR,
+        "GRAD_COLLEGE_2": STR,
+        "GRAD_TYPE_2": STR,
+        "TEACHING_CERTIFICATION": STR
+    }
+    """
+
+    undergrad_college = ed_info["UNDERGRAD_COLLEGE"]
+    undergrad_major = ed_info["UNDERGRAD_MAJOR"]
+
+    grad_college = [ed_info[key] for key in ["GRAD_COLLEGE_1", "GRAD_COLLEGE_2"] if ed_info[key] != ""]
+    grad_major = [ed_info[key] for key in ["GRAD_TYPE_1", "GRAD_TYPE_2"] if ed_info[key] != ""]
+
+    teaching_certification = ed_info["TEACHING_CERTIFICATION"]
+    tutor = models.TutorInformation.query.filter(models.TutorInformation.user_id == user_id).one_or_none()
+
+    if tutor is None:
+        return False
+
+    tutor.undergrad_college = undergrad_college
+    tutor.undergrad_major = undergrad_major
+    tutor.graduate_college = grad_college
+    tutor.graduate_major = grad_major
+    tutor.teaching_certification = teaching_certification
+
     db.session.commit()
 
     return True

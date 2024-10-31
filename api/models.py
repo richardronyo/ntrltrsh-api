@@ -165,9 +165,9 @@ class TutorInformation(db.Model):
     history = db.Column(ARRAY(db.Enum(History)), nullable=True)
     experience = db.Column(db.Enum(Experience), default=None, nullable=True)
     undergrad_college = db.Column(db.VARCHAR(1000), default = None, nullable = True)
-    undergrad_complete = db.Column(db.Boolean, default=False, nullable=True)
+    undergrad_major = db.Column(db.VARCHAR(1000), default = None, nullable = True)
     graduate_college = db.Column(ARRAY(db.VARCHAR(1000)), default = None, nullable = True)
-    graduate_completed = db.Column(ARRAY(db.Boolean), default = None, nullable = True)
+    graduate_major = db.Column(ARRAY(db.VARCHAR(1000)), default = None, nullable = True)
     teaching_certification = db.Column(db.VARCHAR(1000), default = None, nullable = True)
     training_complete = db.Column(db.Boolean, default=False, nullable=False)
 
