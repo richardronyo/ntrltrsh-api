@@ -250,6 +250,25 @@ class Messaging(db.Model):
         self.message = message
         self.time_sent = datetime.utcnow()
 
+class Schedule(db.Model):
+    id = db.Column(db.Integer, primary_key=True, unique=True, nullable=False)
+    student_id = db.Column(db.String(36), default=None, nullable=False)
+    tutor_id = db.Column(db.String(36), default=None, nullable=False)
+    date = db.Column(db.DateTime, nullable=False)
+    day = db.Column(db.VARCHAR(1000), default=None, nullable=False)
+    day_generated = db.Column(db.DateTime, nullable=False)
+
+    start_time = db.Column(db.DateTime, nullable=False)
+    end_time = db.Column(db.DateTime, nullable=False)
+
+    def __init__(self, student_id, tutor_id, date):
+        self.student_id = student_id
+        self.tutor_id = tutor_id
+        self.date = date
+        self.day = date.weekday().strftime("%A")
+        self.day_generated = datetime.utcnow()
+
+        return
 
 
         
