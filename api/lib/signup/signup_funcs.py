@@ -20,14 +20,14 @@ def add_login_information(user):
 
     #If there is a user with the same username or email, return False
     if len(models.LoginInformation.query.filter(models.LoginInformation.username == user["USERNAME"]).all()) == 1 or len(models.LoginInformation.query.filter(models.LoginInformation.email == user["EMAIL"]).all()) == 1:
-        return False
+        return {"SUCCESS": False}
     
     user = models.LoginInformation(user['EMAIL'], user['USERNAME'], user['PASSWORD'], account_type)
 
     db.session.add(user)
     db.session.commit()
 
-    return True
+    return {"SUCCESS": True}
 
 def add_personal_information(user):
     """
@@ -44,14 +44,14 @@ def add_personal_information(user):
     #Getting the user ID from the database
     user_id = models.LoginInformation.query.filter(models.LoginInformation.username == user['USERNAME']).one_or_none().id
     if user_id is None:
-        return False
+        return {"SUCCESS": False}
     
     #Adding Personal Information to the database
     info = models.PersonalInformation(user['FIRST_NAME'], user['LAST_NAME'], user_id)
     db.session.add(info)
     db.session.commit()
 
-    return True
+    return {"SUCCESS": True}
 
 def generate_token(user):
     """
@@ -128,7 +128,7 @@ def add_education_info(ed_info, user_id):
     tutor = models.TutorInformation.query.filter(models.TutorInformation.user_id == user_id).one_or_none()
 
     if tutor is None:
-        return False
+        return {"SUCCESS": False}
 
     tutor.undergrad_college = undergrad_college
     tutor.undergrad_major = undergrad_major
@@ -138,7 +138,7 @@ def add_education_info(ed_info, user_id):
 
     db.session.commit()
 
-    return True
+    return {"SUCCESS": True}
             
 
 
@@ -156,13 +156,13 @@ def add_profile_info(profile_info, user_id):
     tutor = models.TutorInformation.query.filter(models.TutorInformation.user_id == user_id).one_or_none()
 
     if tutor is None:
-        return False    
+        return {"SUCCESS": False}    
     
     tutor.profile_headline = profile_headline
     tutor.bio = bio
     db.session.commit()
 
-    return True
+    return {"SUCCESS": True}
 
 def onboarding_complete(completion_info, user_id):
     """
@@ -182,8 +182,8 @@ def onboarding_complete(completion_info, user_id):
         tutor.date_complete = datetime.strptime(date, "%Y-%m-%d %H:%M:%S")
         db.session.commit()
 
-        return True
+        return {"SUCCESS": True}
     
-    return False
+    return {"SUCCESS": False}
 
 

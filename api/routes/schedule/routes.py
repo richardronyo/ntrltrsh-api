@@ -32,3 +32,4 @@ def update():
     return jsonify(update_availability(availability_info, user_id, account_type)), 200
 
 
+
