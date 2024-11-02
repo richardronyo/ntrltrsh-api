@@ -135,6 +135,8 @@ class StudentInformation(db.Model):
     language = db.Column(ARRAY(db.Enum(Language)), nullable=True)
     english = db.Column(ARRAY(db.Enum(English)), nullable=True)
     history = db.Column(ARRAY(db.Enum(History)), nullable=True)
+    profile_headline = db.Column(db.String, nullable=True)
+    bio = db.Column(db.String, nullable=True)
 
     def __init__(self, user_id, grade_level, math, science, language, english, history):
         self.user_id = user_id

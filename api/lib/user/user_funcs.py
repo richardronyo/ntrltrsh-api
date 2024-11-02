@@ -75,3 +75,35 @@ def get_profile_info(profile_info, user_id):
     
     
     return {"SUCCESS": False}
+
+def edit_user_info(edit_info, user_id):
+    """
+    This function will allow a user to edit their own info
+    {
+        "FIRST_NAME": str,
+        "LAST_NAME": str,
+        "EMAIL": str,
+        "BIO": str
+    }
+    """
+    user_login = models.LoginInformation.query.filter(models.LoginInformation.id == user_id).one_or_none()
+    user_personal = models.PersonalInformation.query.filter(models.PersonalInformation.user_id == user_id).one_or_none()
+    
+    if edit_info["FIRST_NAME"] is not None and edit_info["FIRST_NAME"] != "":
+        user_personal.first_name = edit_info["FIRST_NAME"]
+    
+    if edit_info["LAST_NAME"] is not None and edit_info["LAST_NAME"] != "":
+        user_personal.last_name = edit_info["LAST_NAME"]
+
+    if edit_info["EMAIL"] is not None and edit_info["EMAIL"] != "":
+        user_login.email = edit_info["EMAIL"]
+
+    if edit_info["BIO"] is not None and edit_info["BIO"] != "":
+        if user_login.account_type == models.AccountType.TUTOR:
+            user_tutor = models.TutorInformation.query.filter(models.TutorInformation.user_id == user_id).one_or_none()
+            user_tutor.bio = edit_info["BIO"]
+        else:
+            user_student = models.StudentInformation.query.filter(models.StudentInformation.user_id == user_id).one_or_none()
+            user_student.bio = edit_info["BIO"]
+
+    return {"SUCCESS": True}
