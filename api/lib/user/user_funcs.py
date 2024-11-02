@@ -1,5 +1,6 @@
 from api import models, db
 from sqlalchemy.sql import text
+from api.lib.Security.AESPython import hash_password_with_salt, split_salt_and_password
 
 def reset_password(password_info, user_id):
     """
@@ -111,44 +112,26 @@ def edit_user_info(edit_info, user_id):
 
     return {"SUCCESS": True}
 
-def delete_user(user_id):
+def delete_user(password, user_id):
     login = models.LoginInformation.query.filter(models.LoginInformation.id == user_id).one_or_none()
-    personal = models.PersonalInformation.query.filter(models.PersonalInformation.user_id == user_id).one_or_none()
+    database_password = login.password
 
-    if login.account_type == models.AccountType.STUDENT:
-        specific_account = models.StudentInformation.query.filter(models.StudentInformation.user_id == user_id).one_or_none()
-        schedule = models.Schedule.query.filter(models.Schedule.student_id == user_id).all()
-
-    elif login.account_type == models.AccountType.TUTOR:
-        specific_account = models.TutorInformation.query.filter(models.TutorInformation.user_id == user_id).one_or_none()
-        schedule = models.Schedule.query.filter(models.Schedule.tutor_id == user_id).all()
-
-    availability = models.Availability.query.filter(models.Availability.user_id == user_id).one_or_none()
+    database_salt, database_password_hash = split_salt_and_password(database_password)
+    user_password_hash = hash_password_with_salt(database_salt, password)
     
-    messages_sent = models.Messaging.query.filter(models.Messaging.sender_id == user_id).all()
-    messages_received = models.Messaging.query.filter(models.Messaging.receiver_id == user_id).all()
+    if user_password_hash == database_password_hash:
+        db.session.execute(text('SET CONSTRAINTS ALL IMMEDIATE'))
 
-    db.session.execute(text('SET CONSTRAINTS ALL IMMEDIATE'))
-    
-    for session in schedule:
-        if session is not None:
-            db.session.delete(session)
-    for message in messages_received:
-        if message is not None:
-            db.session.delete(message)
-    for message in messages_sent:
-        if message is not None:
-            db.session.delete(message)
+        models.PersonalInformation.query.filter(models.PersonalInformation.user_id == user_id).delete()
+        models.StudentInformation.query.filter(models.StudentInformation.user_id == user_id).delete()
+        models.TutorInformation.query.filter(models.TutorInformation.user_id == user_id).delete()
+        models.Schedule.query.filter(models.Schedule.tutor_id == user_id).delete()
+        models.Availability.query.filter(models.Availability.user_id == user_id).delete()
+        models.Messaging.query.filter(models.Messaging.sender_id == user_id).delete()
+        models.Messaging.query.filter(models.Messaging.receiver_id == user_id).delete()
 
-    if availability is not None:
-        db.session.delete(availability)
-    if specific_account is not None:
-        db.session.delete(specific_account)
-    if personal is not None:
-        db.session.delete(personal)
-    if login is not None:
-        db.session.delete(login)
+        models.LoginInformation.query.filter(models.LoginInformation.id == user_id).delete()        
+        db.session.commit()
 
-    db.session.commit()
-
-    return {"SUCCESS": True}
+        return {"SUCCESS": True}
+    return {"SUCCESS": False}

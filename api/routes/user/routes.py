@@ -67,8 +67,12 @@ def edit():
 def delete():
     """
     This route will delete the current user
+    {
+        "PASSWORD": str
+    }
     """
 
     user_id = current_user.id
+    password = request.get_json()["PASSWORD"]
 
-    return jsonify(delete_user(user_id))
+    return jsonify(delete_user(password, user_id))
