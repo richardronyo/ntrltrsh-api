@@ -112,26 +112,20 @@ def edit_user_info(edit_info, user_id):
 
     return {"SUCCESS": True}
 
-def delete_user(password, user_id):
-    login = models.LoginInformation.query.filter(models.LoginInformation.id == user_id).one_or_none()
-    database_password = login.password
+def delete_user(user_id):
 
-    database_salt, database_password_hash = split_salt_and_password(database_password)
-    user_password_hash = hash_password_with_salt(database_salt, password)
     
-    if user_password_hash == database_password_hash:
-        db.session.execute(text('SET CONSTRAINTS ALL IMMEDIATE'))
+    db.session.execute(text('SET CONSTRAINTS ALL IMMEDIATE'))
 
-        models.PersonalInformation.query.filter(models.PersonalInformation.user_id == user_id).delete()
-        models.StudentInformation.query.filter(models.StudentInformation.user_id == user_id).delete()
-        models.TutorInformation.query.filter(models.TutorInformation.user_id == user_id).delete()
-        models.Schedule.query.filter(models.Schedule.tutor_id == user_id).delete()
-        models.Availability.query.filter(models.Availability.user_id == user_id).delete()
-        models.Messaging.query.filter(models.Messaging.sender_id == user_id).delete()
-        models.Messaging.query.filter(models.Messaging.receiver_id == user_id).delete()
+    models.PersonalInformation.query.filter(models.PersonalInformation.user_id == user_id).delete()
+    models.StudentInformation.query.filter(models.StudentInformation.user_id == user_id).delete()
+    models.TutorInformation.query.filter(models.TutorInformation.user_id == user_id).delete()
+    models.Schedule.query.filter(models.Schedule.tutor_id == user_id).delete()
+    models.Availability.query.filter(models.Availability.user_id == user_id).delete()
+    models.Messaging.query.filter(models.Messaging.sender_id == user_id).delete()
+    models.Messaging.query.filter(models.Messaging.receiver_id == user_id).delete()
 
-        models.LoginInformation.query.filter(models.LoginInformation.id == user_id).delete()        
-        db.session.commit()
+    models.LoginInformation.query.filter(models.LoginInformation.id == user_id).delete()        
+    db.session.commit()
 
-        return {"SUCCESS": True}
-    return {"SUCCESS": False}
+    return {"SUCCESS": True}

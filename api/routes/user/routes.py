@@ -73,6 +73,5 @@ def delete():
     """
 
     user_id = current_user.id
-    password = request.get_json()["PASSWORD"]
 
-    return jsonify(delete_user(password, user_id))
+    return jsonify(delete_user(user_id))
