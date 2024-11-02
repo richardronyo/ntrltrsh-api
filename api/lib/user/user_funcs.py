@@ -1,4 +1,5 @@
 from api import models, db
+from sqlalchemy.sql import text
 
 def reset_password(password_info, user_id):
     """
@@ -105,5 +106,49 @@ def edit_user_info(edit_info, user_id):
         else:
             user_student = models.StudentInformation.query.filter(models.StudentInformation.user_id == user_id).one_or_none()
             user_student.bio = edit_info["BIO"]
+
+    db.session.commit()
+
+    return {"SUCCESS": True}
+
+def delete_user(user_id):
+    login = models.LoginInformation.query.filter(models.LoginInformation.id == user_id).one_or_none()
+    personal = models.PersonalInformation.query.filter(models.PersonalInformation.user_id == user_id).one_or_none()
+
+    if login.account_type == models.AccountType.STUDENT:
+        specific_account = models.StudentInformation.query.filter(models.StudentInformation.user_id == user_id).one_or_none()
+        schedule = models.Schedule.query.filter(models.Schedule.student_id == user_id).all()
+
+    elif login.account_type == models.AccountType.TUTOR:
+        specific_account = models.TutorInformation.query.filter(models.TutorInformation.user_id == user_id).one_or_none()
+        schedule = models.Schedule.query.filter(models.Schedule.tutor_id == user_id).all()
+
+    availability = models.Availability.query.filter(models.Availability.user_id == user_id).one_or_none()
+    
+    messages_sent = models.Messaging.query.filter(models.Messaging.sender_id == user_id).all()
+    messages_received = models.Messaging.query.filter(models.Messaging.receiver_id == user_id).all()
+
+    db.session.execute(text('SET CONSTRAINTS ALL IMMEDIATE'))
+    
+    for session in schedule:
+        if session is not None:
+            db.session.delete(session)
+    for message in messages_received:
+        if message is not None:
+            db.session.delete(message)
+    for message in messages_sent:
+        if message is not None:
+            db.session.delete(message)
+
+    if availability is not None:
+        db.session.delete(availability)
+    if specific_account is not None:
+        db.session.delete(specific_account)
+    if personal is not None:
+        db.session.delete(personal)
+    if login is not None:
+        db.session.delete(login)
+
+    db.session.commit()
 
     return {"SUCCESS": True}
