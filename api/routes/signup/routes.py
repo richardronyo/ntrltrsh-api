@@ -2,7 +2,7 @@ from api.routes.signup import signup_route
 
 from flask import request, jsonify
 from flask_jwt_extended import jwt_required, current_user
-from api.lib.signup.signup_funcs import add_login_information, add_personal_information, generate_token, add_subjects, add_education_info, add_profile_info, onboarding_complete
+from api.lib.signup.signup_funcs import add_login_information, add_personal_information, generate_token, add_subjects, add_education_info, add_profile_info, onboarding_complete, upload_files
 
 from api.lib.Security.AESPython import update_password_field
 
@@ -105,9 +105,18 @@ def complete():
     completion_info = request.get_json()
 
     return jsonify(onboarding_complete(completion_info, user_id))
-#Upload Profile Picture for Tutors
 
-#Upload Multiple Files for Tutors
+@signup_route.route('/upload', methods = ["POST"])
+@jwt_required()
+def upload():
+    """
+    This function uploads a profile picture to Azure Blob Storage
+    """
+    user_id = current_user.id
+    files = request.files.getlist('file')
+
+    
+    return jsonify(upload_files(files, user_id))
 
 
 

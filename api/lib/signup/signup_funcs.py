@@ -4,6 +4,10 @@ from flask_jwt_extended import create_access_token, jwt_required
 
 from datetime import datetime
 
+from azure.storage.blob import BlobServiceClient
+
+
+
 def add_login_information(user):
     """
     This function adds a row to the LoginInformation table. Called by accessing /api/signup/logininformation
@@ -186,4 +190,28 @@ def onboarding_complete(completion_info, user_id):
     
     return {"SUCCESS": False}
 
+
+def upload_files(files, user_id):
+    """
+    This function uploads files into Azure Blob Storage
+    {
+        "FILES": [list of files]
+    }
+
+    A users files will be saved in a folder with their username
+    """
+    CONNECTION_STRING = "DefaultEndpointsProtocol=https;AccountName=ntrltrshblob;AccountKey=i3H1VXstjf0GIotcMctbTsiwKnTcgEJBiUYGEakvKAfH1g7GbXYPVaOIHrAthxcHYmErrjrBoFcG+AStWm/5bA==;EndpointSuffix=core.windows.net"
+
+    blob_service_client = BlobServiceClient.from_connection_string(CONNECTION_STRING)
+    container_client = blob_service_client.get_container_client("user-files")
+
+    user = models.LoginInformation.query.filter(models.LoginInformation.id == user_id).one_or_none()
+    username = user.username
+
+    for file in files:
+        data = file.read()
+        
+        container_client.upload_blob(name = f"{username}/{file.filename}", data = data, overwrite=True)
+
+    return {"SUCCESS": True}
 
