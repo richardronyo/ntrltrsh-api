@@ -45,18 +45,14 @@ def remove_personal_info(user_id):
     
     return {"SUCCESS": False}
 
-def get_profile_info(profile_info, user_id):
+def get_profile_info(user_id):
     """
     This function will get a profile from an email address
-    {
-        "EMAIL": str
-    }
+
     """
-    email = profile_info["EMAIL"]
     #When the scheduling is complete, before sending back the information, the server will check if the user they're searching for has a session with them
 
-    user_login = models.LoginInformation.query.filter(models.LoginInformation.email == email).one_or_none()
-    other_id = user_login.id
+    user_login = models.LoginInformation.query.filter(models.LoginInformation.id == user_id).one_or_none()
 
     if user_login is not None:
 
@@ -67,7 +63,7 @@ def get_profile_info(profile_info, user_id):
         else:
             account_type = "Tutor"
         
-        user_personal = models.PersonalInformation.query.filter(models.PersonalInformation.user_id == other_id).one_or_none()
+        user_personal = models.PersonalInformation.query.filter(models.PersonalInformation.user_id == user_id).one_or_none()
         first_name = user_personal.first_name
         last_name = user_personal.last_name
 

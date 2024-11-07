@@ -34,15 +34,11 @@ def remove():
 @jwt_required()
 def get_profile():
     """
-    This route will get a profile from an email address
-    {
-        "EMAIL": str
-    }
+    This route will get a profile for the current user
     """
     user_id = current_user.id
-    profile_info = request.get_json()
     
-    return jsonify(get_profile_info(profile_info, user_id))
+    return jsonify(get_profile_info(user_id))
 
 @user_route.route('/edit', methods=["PUT"])
 @jwt_required()
