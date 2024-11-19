@@ -42,6 +42,9 @@ def login_verification(user):
     #Now, hash the the user input password using the database salt
     user_password_hash = hash_password_with_salt(database_salt, password)
     
+    if models.LoginInformation.account_type == models.AccountType.TUTOR:
+        registration = models.LoginInformation.registration_complete
+
     #Verify password
     if (user_email is not None and database_password_hash == user_password_hash) or (user_username is not None and database_password_hash == user_password_hash):
         # User authenticated successfully, generate JWT token
@@ -52,7 +55,8 @@ def login_verification(user):
 
         return {
             "LOGIN": True,
-            "token": token
+            "token": token,
+            "REGISTRATION_COMPLETE": registration
         }
 
     return {"LOGIN": False} #Username or email exist, but password doesn't match
