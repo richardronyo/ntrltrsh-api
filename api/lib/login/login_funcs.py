@@ -42,6 +42,7 @@ def login_verification(user):
     #Now, hash the the user input password using the database salt
     user_password_hash = hash_password_with_salt(database_salt, password)
     
+    registration = True
     if models.LoginInformation.account_type == models.AccountType.TUTOR:
         registration = models.LoginInformation.registration_complete
 
