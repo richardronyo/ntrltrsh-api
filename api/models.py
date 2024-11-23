@@ -272,5 +272,22 @@ class Schedule(db.Model):
 
         return
 
+class Bugs(db.Model):
+    id = db.Column(db.Integer, primary_key=True, unique=True, nullable=False)
+    reporter_id = db.Column(db.String(36), default=None, nullable=False)
+    title = db.Column(db.VARCHAR(1000), default = None, nullable = False)
+    description = db.Column(db.VARCHAR(10000), default = None, nullable = False)
+    time_submitted = db.Column(db.DateTime, nullable=False)
+    reviewed = db.Column(db.Boolean, default=False, nullable=False)
+
+    def __init__(self, reporter_id, title, description):
+        self.reporter_id = reporter_id
+        self.title = title
+        self.description = description
+        self.time_submitted = datetime.utcnow()
+
+        return
+
+        
 
         

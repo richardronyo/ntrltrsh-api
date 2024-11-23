@@ -71,3 +71,8 @@ def delete():
     user_id = current_user.id
 
     return jsonify(delete_user(user_id))
+
+
+#Bug Report Function
+#Upload the text
+#Upload the file to azure with the filename admin/<reporter_username>_<title>
