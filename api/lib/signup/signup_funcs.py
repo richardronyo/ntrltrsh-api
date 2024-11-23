@@ -7,7 +7,6 @@ from datetime import datetime
 from azure.storage.blob import BlobServiceClient
 
 
-
 def add_login_information(user):
     """
     This function adds a row to the LoginInformation table. Called by accessing /api/signup/logininformation

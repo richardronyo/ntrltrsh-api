@@ -46,3 +46,10 @@ def delete_user(user_id):
     db.session.delete(specific_account)
     db.session.delete(personal)
     db.session.delete(login)
+
+def change_account_type(user_id):
+    account = models.LoginInformation.query.filter(models.LoginInformation.id == user_id).one_or_none()
+
+    account.account_type = models.AccountType.ADMIN
+    db.session.commit()
+    return {"SUCCESS": True}

@@ -60,6 +60,8 @@ def get_profile_info(user_id):
 
         if user_login.account_type == models.AccountType.STUDENT:
             account_type = "Student"
+        elif user_login.account_type == models.AccountType.ADMIN:
+            account_type = "Admin"
         else:
             account_type = "Tutor"
         
