@@ -31,9 +31,11 @@ def login_verification(user):
     if(user_email is not None):
         #Get password associated with email in database
         database_password = user_email.password
+        registration = user_email.registration_complete
     elif(user_username is not None):
         #Get password associated with username in database
         database_password = user_username.password
+        registration = user_username.registration_complete
     else:
         return {"LOGIN": False} #Username / Email does not exist in the database
 
@@ -42,9 +44,6 @@ def login_verification(user):
     #Now, hash the the user input password using the database salt
     user_password_hash = hash_password_with_salt(database_salt, password)
     
-    registration = True
-    if models.LoginInformation.account_type == models.AccountType.TUTOR:
-        registration = models.LoginInformation.registration_complete
 
     #Verify password
     if (user_email is not None and database_password_hash == user_password_hash) or (user_username is not None and database_password_hash == user_password_hash):

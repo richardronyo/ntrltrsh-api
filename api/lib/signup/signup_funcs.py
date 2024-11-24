@@ -204,7 +204,7 @@ def upload_files(files, user_id):
     blob_service_client = BlobServiceClient.from_connection_string(CONNECTION_STRING)
     container_client = blob_service_client.get_container_client("user-files")
 
-    user = models.LoginInformation.query.filter(models.LoginInformation.id == user_id).one_or_none()
+    user = models.LoginInformation.query.filter(models.LoginInformation.id == user_id).one()
     username = user.username
 
     for file in files:
@@ -214,5 +214,33 @@ def upload_files(files, user_id):
 
     return {"SUCCESS": True}
 
-def student_signup():
-    return
+def student_signup(user_id, student_data):
+    """
+    This function adds a students education level, and the subjects a student needs help with to the database
+    {
+        "EDUCATION_LEVEL": str,
+        "MATH": [<int>, ..., <int>]
+        "SCIENCE": [<int>, ..., <int>]
+        "LANGUAGE": [<int>, ..., <int>]
+        "ENGLISH": [<int>, ..., <int>]
+        "HISTORY": [<int>, ..., <int>]
+    }
+    """
+    grade_level = models.EducationLevel(student_data["EDUCATION_LEVEL"])
+
+    math = [models.Math(value) for value in student_data["MATH"]]
+    science = [models.Science(value) for value in student_data["SCIENCE"]]
+    language = [models.Language(value) for value in student_data["LANGUAGE"]]
+    english = [models.English(value) for value in student_data["ENGLISH"]]
+    history = [models.History(value) for value in student_data["HISTORY"]]
+
+    account = models.LoginInformation.query.filter(models.LoginInformation.id == user_id).one_or_none()
+    account.registration_complete = True
+    account.date_complete = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    db.session.commit()
+
+    student = models.StudentInformation(user_id, grade_level, math, science, language, english, history)
+    db.session.add(student)
+    db.session.commit()
+
+    return {"SUCCESS": True}
