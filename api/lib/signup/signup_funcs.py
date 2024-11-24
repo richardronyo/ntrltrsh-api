@@ -214,3 +214,5 @@ def upload_files(files, user_id):
 
     return {"SUCCESS": True}
 
+def student_signup():
+    return

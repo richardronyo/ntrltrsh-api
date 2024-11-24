@@ -20,6 +20,7 @@ class EducationLevel(enum.Enum):
     UNIVERSITY = 4
 
 class Math(enum.Enum):
+    GENERAL_MATH = 0
     ALGEBRA = 1
     CALCULUS = 2
     GEOMETRY = 3
@@ -30,6 +31,7 @@ class Math(enum.Enum):
     LINEAR_ALGEBRA = 8
 
 class Science(enum.Enum):
+    GENERAL_SCIENCE = 0
     PHYSICS = 1
     CHEMISTRY = 2
     BIOLOGY = 3
@@ -50,6 +52,7 @@ class Language(enum.Enum):
     ARABIC = 8
 
 class English(enum.Enum):
+    GENERAL_ENGLISH = 0
     LITERATURE = 1
     GRAMMAR = 2
     WRITING = 3
@@ -60,6 +63,7 @@ class English(enum.Enum):
     CREATIVE_WRITING = 8
 
 class History(enum.Enum):
+    SOCIAL_STUDIES = 0
     ANCIENT = 1
     MEDIEVAL = 2
     MODERN = 3
@@ -68,8 +72,6 @@ class History(enum.Enum):
     AMERICAN_REVOLUTION = 6
     INDUSTRIAL_REVOLUTION = 7
     COLD_WAR = 8
-
-
 
 class Experience(enum.Enum):
     ZERO = 0
