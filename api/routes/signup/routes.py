@@ -88,8 +88,9 @@ def profile():
     """
     user_id = current_user.id
     profile_info = request.get_json()
+    files = request.files.getlist('file')
 
-    return jsonify(add_profile_info(profile_info, user_id)), 200
+    return jsonify(add_profile_info(files, profile_info, user_id)), 200
 
 @signup_route.route('/onboarding_complete', methods=["POST"])
 @jwt_required()

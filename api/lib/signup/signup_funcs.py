@@ -145,12 +145,13 @@ def add_education_info(ed_info, user_id):
             
 
 
-def add_profile_info(profile_info, user_id):
+def add_profile_info(files, profile_info, user_id):
     """
     This function adds profile information to the TutorInformation table
     {
         "HEADLINE": str,
-        "BIO": str
+        "BIO": str,
+        "PROFILE_PIC": [list of file]
     }
     """
     profile_headline = profile_info["HEADLINE"]
@@ -165,6 +166,17 @@ def add_profile_info(profile_info, user_id):
     tutor.bio = bio
     db.session.commit()
 
+    #Uploading the profile picture to azure
+    blob_service_client = BlobServiceClient.from_connection_string(CONNECTION_STRING)
+    container_client = blob_service_client.get_container_client("user-files")
+
+    user = models.LoginInformation.query.filter(models.LoginInformation.id == user_id).one()
+    username = user.username
+
+    for file in files:
+        data = file.read()
+        
+        container_client.upload_blob(name = f"{username}/profile_{file.filename}", data = data, overwrite=True)
     return {"SUCCESS": True}
 
 def onboarding_complete(completion_info, user_id):
