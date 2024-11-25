@@ -14,13 +14,14 @@ class AccountType(enum.Enum):
     STUDENT = 2
 
 class EducationLevel(enum.Enum):
+    UNSPECIFIED = 0
     ELEMENTARY = 1
     JUNIOR_HIGH = 2
     HIGH_SCHOOL = 3
     UNIVERSITY = 4
 
 class Math(enum.Enum):
-    GENERAL_MATH = 0
+    
     ALGEBRA = 1
     CALCULUS = 2
     GEOMETRY = 3
@@ -29,9 +30,9 @@ class Math(enum.Enum):
     PROBABILITY = 6
     DIFFERENTIAL_EQUATIONS = 7
     LINEAR_ALGEBRA = 8
+    GENERAL_MATH = 9
 
 class Science(enum.Enum):
-    GENERAL_SCIENCE = 0
     PHYSICS = 1
     CHEMISTRY = 2
     BIOLOGY = 3
@@ -40,6 +41,8 @@ class Science(enum.Enum):
     ENVIRONMENTAL_SCIENCE = 6
     BOTANY = 7
     ZOOLOGY = 8
+    GENERAL_SCIENCE = 9
+
 
 class Language(enum.Enum):
     FRENCH = 1
@@ -52,7 +55,6 @@ class Language(enum.Enum):
     ARABIC = 8
 
 class English(enum.Enum):
-    GENERAL_ENGLISH = 0
     LITERATURE = 1
     GRAMMAR = 2
     WRITING = 3
@@ -61,9 +63,9 @@ class English(enum.Enum):
     ESSAY_WRITING = 6
     CRITICAL_ANALYSIS = 7
     CREATIVE_WRITING = 8
+    GENERAL_ENGLISH = 9
 
 class History(enum.Enum):
-    SOCIAL_STUDIES = 0
     ANCIENT = 1
     MEDIEVAL = 2
     MODERN = 3
@@ -72,6 +74,8 @@ class History(enum.Enum):
     AMERICAN_REVOLUTION = 6
     INDUSTRIAL_REVOLUTION = 7
     COLD_WAR = 8
+    SOCIAL_STUDIES = 9
+
 
 class Experience(enum.Enum):
     ZERO = 0
