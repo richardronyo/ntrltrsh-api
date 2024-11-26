@@ -14,12 +14,14 @@ class AccountType(enum.Enum):
     STUDENT = 2
 
 class EducationLevel(enum.Enum):
+    UNSPECIFIED = 0
     ELEMENTARY = 1
     JUNIOR_HIGH = 2
     HIGH_SCHOOL = 3
     UNIVERSITY = 4
 
 class Math(enum.Enum):
+    
     ALGEBRA = 1
     CALCULUS = 2
     GEOMETRY = 3
@@ -28,6 +30,7 @@ class Math(enum.Enum):
     PROBABILITY = 6
     DIFFERENTIAL_EQUATIONS = 7
     LINEAR_ALGEBRA = 8
+    GENERAL_MATH = 9
 
 class Science(enum.Enum):
     PHYSICS = 1
@@ -38,6 +41,8 @@ class Science(enum.Enum):
     ENVIRONMENTAL_SCIENCE = 6
     BOTANY = 7
     ZOOLOGY = 8
+    GENERAL_SCIENCE = 9
+
 
 class Language(enum.Enum):
     FRENCH = 1
@@ -58,6 +63,7 @@ class English(enum.Enum):
     ESSAY_WRITING = 6
     CRITICAL_ANALYSIS = 7
     CREATIVE_WRITING = 8
+    GENERAL_ENGLISH = 9
 
 class History(enum.Enum):
     ANCIENT = 1
@@ -68,7 +74,7 @@ class History(enum.Enum):
     AMERICAN_REVOLUTION = 6
     INDUSTRIAL_REVOLUTION = 7
     COLD_WAR = 8
-
+    SOCIAL_STUDIES = 9
 
 
 class Experience(enum.Enum):
@@ -272,5 +278,22 @@ class Schedule(db.Model):
 
         return
 
+class Bugs(db.Model):
+    id = db.Column(db.Integer, primary_key=True, unique=True, nullable=False)
+    reporter_id = db.Column(db.String(36), default=None, nullable=False)
+    title = db.Column(db.VARCHAR(1000), default = None, nullable = False)
+    description = db.Column(db.VARCHAR(10000), default = None, nullable = False)
+    time_submitted = db.Column(db.DateTime, nullable=False)
+    reviewed = db.Column(db.Boolean, default=False, nullable=False)
+
+    def __init__(self, reporter_id, title, description):
+        self.reporter_id = reporter_id
+        self.title = title
+        self.description = description
+        self.time_submitted = datetime.utcnow()
+
+        return
+
+        
 
         

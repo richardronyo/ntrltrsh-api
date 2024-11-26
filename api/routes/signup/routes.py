@@ -2,7 +2,7 @@ from api.routes.signup import signup_route
 
 from flask import request, jsonify
 from flask_jwt_extended import jwt_required, current_user
-from api.lib.signup.signup_funcs import add_login_information, add_personal_information, generate_token, add_subjects, add_education_info, add_profile_info, onboarding_complete, upload_files
+from api.lib.signup.signup_funcs import add_login_information, add_personal_information, generate_token, add_subjects, add_education_info, add_profile_info, onboarding_complete, upload_files, student_signup, upload_profile_pic
 
 from api.lib.Security.AESPython import update_password_field
 
@@ -91,6 +91,14 @@ def profile():
 
     return jsonify(add_profile_info(profile_info, user_id)), 200
 
+@signup_route.route('/profile_pic', methods=["POST"])
+@jwt_required()
+def profile_pic():
+    user_id = current_user.id
+    files = request.files.getlist('file')
+
+    return jsonify(upload_profile_pic(files, user_id)), 200
+
 @signup_route.route('/onboarding_complete', methods=["POST"])
 @jwt_required()
 def complete():
@@ -118,7 +126,24 @@ def upload():
     
     return jsonify(upload_files(files, user_id))
 
+@signup_route.route('/student', methods = ["POST"])
+@jwt_required()
+def student():
+    """
+    This function adds a students education level, and the subjects a student needs help with to the database
+    {
+        "EDUCATION_LEVEL": str,
+        "MATH": [<int>, ..., <int>]
+        "SCIENCE": [<int>, ..., <int>]
+        "LANGUAGE": [<int>, ..., <int>]
+        "ENGLISH": [<int>, ..., <int>]
+        "HISTORY": [<int>, ..., <int>]
+    }
+    """
+    user_id = current_user.id
+    student_data = request.get_json()
 
+    return jsonify(student_signup(user_id, student_data)), 200
 
     
 
