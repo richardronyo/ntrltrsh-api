@@ -145,13 +145,12 @@ def add_education_info(ed_info, user_id):
             
 
 
-def add_profile_info(files, profile_info, user_id):
+def add_profile_info(profile_info, user_id):
     """
     This function adds profile information to the TutorInformation table
     {
         "HEADLINE": str,
         "BIO": str,
-        "PROFILE_PIC": [list of file]
     }
     """
     profile_headline = profile_info["HEADLINE"]
@@ -166,6 +165,10 @@ def add_profile_info(files, profile_info, user_id):
     tutor.bio = bio
     db.session.commit()
 
+
+    return {"SUCCESS": True}
+
+def upload_profile_pic(files, user_id):
     #Uploading the profile picture to azure
     CONNECTION_STRING = "DefaultEndpointsProtocol=https;AccountName=ntrltrshblob;AccountKey=i3H1VXstjf0GIotcMctbTsiwKnTcgEJBiUYGEakvKAfH1g7GbXYPVaOIHrAthxcHYmErrjrBoFcG+AStWm/5bA==;EndpointSuffix=core.windows.net"
 
@@ -179,6 +182,7 @@ def add_profile_info(files, profile_info, user_id):
         data = file.read()
         
         container_client.upload_blob(name = f"{username}/profile_{file.filename}", data = data, overwrite=True)
+
     return {"SUCCESS": True}
 
 def onboarding_complete(completion_info, user_id):
