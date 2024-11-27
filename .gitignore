@@ -1,8 +1,3 @@
 venv/*
 migrations/
 alembic.ini
-*.pyc
-/venv/Lib/site-packages
-/api/routes/schedule
-venv/pyvenv.cfg
-/venv/Scripts
