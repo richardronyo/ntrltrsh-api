@@ -3,7 +3,7 @@ from api.routes.user import user_route
 from flask_jwt_extended import current_user, jwt_required
 from flask import request, jsonify
 
-from api.lib.user.user_funcs import reset_password, remove_personal_info, get_profile_info, edit_user_info, delete_user
+from api.lib.user.user_funcs import reset_password, remove_personal_info, get_profile_info, edit_user_info, delete_user, send_bugreport
 
 @user_route.route('/reset_password', methods=["PUT"])
 @jwt_required()
@@ -73,6 +73,19 @@ def delete():
     return jsonify(delete_user(user_id))
 
 
-#Bug Report Function
-#Upload the text
-#Upload the file to azure with the filename admin/<reporter_username>_<title>
+@user_route.route('/bugreport', methods=["POST"])
+@jwt_required()
+def bugreport():
+        """
+        The route will send a bug report to the admin account
+        {
+            "REPORTER_ID": str,
+            "TITLE": str,
+            "DESCRIPTION": str,
+        }
+        """
+
+        user_id = current_user.id
+        bugreport_info = request.get_json()
+
+        return jsonify(send_bugreport(user_id, bugreport_info)), 200

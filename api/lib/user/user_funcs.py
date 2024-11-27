@@ -1,3 +1,4 @@
+import datetime
 from api import models, db
 from sqlalchemy.sql import text
 from api.lib.Security.AESPython import hash_password_with_salt, split_salt_and_password
@@ -127,3 +128,31 @@ def delete_user(user_id):
     db.session.commit()
 
     return {"SUCCESS": True}
+
+
+def send_bugreport(user_id, bugreport_info):
+    """
+    This function will send a bug report to the admin
+    {
+        "REPORTER_ID": str,
+        "TITLE": str,
+        "DESCRIPTION": str
+    }
+    """
+
+    sender_id = user_id
+    title = bugreport_info["TITLE"]
+    message = bugreport_info["DESCRIPTION"]
+
+    # looks for users with ADMIN account_type
+    #recipient = models.LoginInformation.query.filter(models.LoginInformation.account_type == models.AccountType.ADMIN).one_or_none()
+
+    #if recipient is not None:
+    new_bugreport = models.Bugs(sender_id, title, message)
+
+    db.session.add(new_bugreport)
+    db.session.commit()
+
+    return {"SUCCESS": True}
+        
+    #return {"SUCCESS": False}
