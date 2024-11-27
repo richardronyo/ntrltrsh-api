@@ -65,13 +65,14 @@ def get_profile_info(user_id):
         else:
             account_type = "Tutor"
         
+        user_email_address = user_login.email
         user_personal = models.PersonalInformation.query.filter(models.PersonalInformation.user_id == user_id).one_or_none()
         first_name = user_personal.first_name
         last_name = user_personal.last_name
 
         full_name = f"{first_name} {last_name}"
 
-        return {"SUCCESS": True, "FULL_NAME": full_name, "USERNAME": username, "ACCOUNT_TYPE": account_type}
+        return {"SUCCESS": True, "FULL_NAME": full_name, "USERNAME": username, "ACCOUNT_TYPE": account_type, "EMAIL": user_email_address}
     
     
     return {"SUCCESS": False}
