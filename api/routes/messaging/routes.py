@@ -2,7 +2,7 @@ from api.routes.messaging import messaging_route
 
 from flask import request, jsonify
 from flask_jwt_extended import current_user, jwt_required
-from api.lib.messaging.messaging_funcs import send_message, get_all_messages, get_conversation
+from api.lib.messaging.messaging_funcs import send_message, get_all_messages
 
 @messaging_route.route('/send', methods = ["POST"])
 @jwt_required()
@@ -30,27 +30,4 @@ def inbox():
     user_id = current_user.id
     return jsonify(get_all_messages(user_id)), 200
 
-@messaging_route.route('/conversation', methods=["POST"])
-@jwt_required()
-def conversation():
-    """
-    Get the conversation between the current user and a specified recipient.
-    Request body:
-    {
-        "RECIPIENT_USERNAME": "string"
-    }
-    """
-    user_id = current_user.id
-    data = request.get_json()
-
-    if not data or "RECIPIENT_USERNAME" not in data:
-        return jsonify({"error": "RECIPIENT_USERNAME is required"}), 400
-
-    recipient_username = data["RECIPIENT_USERNAME"]
-
-    conversation = get_conversation(user_id, recipient_username)
-    if "error" in conversation:
-        return jsonify(conversation), 404
-
-    return jsonify(conversation), 200
-
+    
