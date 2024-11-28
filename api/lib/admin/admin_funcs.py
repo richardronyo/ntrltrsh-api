@@ -1,6 +1,9 @@
 from api import models, db
 from sqlalchemy.sql import text
 
+from api.lib.Security.AESPython import update_password_field
+
+
 
 def retrieve_all_users():
     users = db.session.query(models.LoginInformation).all()
@@ -22,10 +25,9 @@ def clear_database():
     messages = db.session.query(models.Messaging).delete()
     bugs = db.session.query(models.Bugs).delete()
     users = db.session.query(models.LoginInformation).delete()
+    db.session.query(models.Schedule).delete()
+    db.session.query(models.Shifts).delete()
 
-
-
-        
     db.session.commit()
 
     return True
@@ -52,5 +54,24 @@ def change_account_type(user_id):
     account = models.LoginInformation.query.filter(models.LoginInformation.id == user_id).one_or_none()
 
     account.account_type = models.AccountType.ADMIN
+    account.registration_complete = True
     db.session.commit()
+    return {"SUCCESS": True}
+
+def create_admin():
+    password = {"PASSWORD": "admin"}
+    password = update_password_field(password)
+    password = password["PASSWORD"]
+
+    admin = models.LoginInformation(email="admin@studycycle.com", username="admin", password = password, account_type= models.AccountType.ADMIN)
+    db.session.add(admin)
+    db.session.commit()
+    return {"SUCCESS": True}
+
+def clear_schedule_and_shifts():
+    db.session.query(models.Schedule).delete()
+    db.session.query(models.Shifts).delete()
+
+    db.session.commit()
+
     return {"SUCCESS": True}

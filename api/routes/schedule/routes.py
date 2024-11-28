@@ -1,7 +1,7 @@
 from api.routes.schedule import schedule_route
 from flask import request, jsonify
 from flask_jwt_extended import jwt_required, current_user
-from api.lib.schedule.schedule_funcs import update_availability
+from api.lib.schedule.schedule_funcs import update_availability, matchmaking_algorithm
 
 @schedule_route.route('/update', methods=["POST"])
 @jwt_required()
@@ -31,5 +31,14 @@ def update():
     # Call the update function with availability info and user_id
     return jsonify(update_availability(availability_info, user_id, account_type)), 200
 
+@schedule_route.route('/match', methods = ["PUT"])
+def match():
+    """
+    This route will run the matchmaking algorithm
+    """
+
+    return jsonify(matchmaking_algorithm()), 200
+
+    
 
 

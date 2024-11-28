@@ -266,17 +266,27 @@ class Schedule(db.Model):
     day = db.Column(db.VARCHAR(1000), default=None, nullable=False)
     day_generated = db.Column(db.DateTime, nullable=False)
 
-    start_time = db.Column(db.DateTime, nullable=False)
-    end_time = db.Column(db.DateTime, nullable=False)
+    start_time = db.Column(db.VARCHAR(1000), nullable=False)
+    end_time = db.Column(db.VARCHAR(1000), nullable=False)
 
-    def __init__(self, student_id, tutor_id, date):
+    def __init__(self, student_id, tutor_id, date, start_time, end_time):
         self.student_id = student_id
         self.tutor_id = tutor_id
         self.date = date
-        self.day = date.weekday().strftime("%A")
+        self.day = date.weekday()
         self.day_generated = datetime.utcnow()
+        self.start_time = start_time
+        self.end_time = end_time
 
-        return
+    def to_dict(self):
+        return{
+            "STUDENT_ID": self.student_id,
+            "TUTOR_ID": self.tutor_id,
+            "DATE": self.date,
+            "DAY": self.day,
+            "START_TIME": self.start_time,
+            "END_TIME": self.end_time
+        }
 
 class Bugs(db.Model):
     id = db.Column(db.Integer, primary_key=True, unique=True, nullable=False)
@@ -293,6 +303,24 @@ class Bugs(db.Model):
         self.time_submitted = datetime.utcnow()
 
         return
+
+class Shifts(db.Model):
+    id = db.Column(db.Integer, primary_key = True, unique = True, nullable = False)
+    tutor_id = db.Column(db.String(36), default = None, nullable = False)
+    start_day = db.Column(db.VARCHAR(1000), default = None, nullable = False)
+    end_day = db.Column(db.VARCHAR(1000), default = None, nullable = False)
+    num_of_shifts = db.Column(db.Integer, default = 0, nullable = True)
+
+    def __init__(self, tutor_id, start_day, end_day, num_of_shifts = 1):
+        self.tutor_id = tutor_id
+        self.start_day = start_day
+        self.end_day = end_day
+        self.num_of_shifts = num_of_shifts
+
+    def add_shift(self):
+        self.num_of_shifts += 1
+
+    
 
         
 
