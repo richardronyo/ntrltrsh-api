@@ -60,3 +60,44 @@ def login_verification(user):
         }
 
     return {"LOGIN": False} #Username or email exist, but password doesn't match
+
+def google_sign_in(login_data):
+    """
+    This method creates a new user/logs in an existing user with their google credentials. It will return a login token and if the registration is complete.
+
+    If the user's information isn't already in the database, it will add the user to the database.
+    {
+        "EMAIL": <email>,
+        "FIRST_NAME": <first_name>,
+        "LAST_NAME": <last_name>
+    }
+    
+    """
+
+    email = login_data['EMAIL']
+    first_name = login_data["FIRST_NAME"]
+    last_name = login_data["LAST_NAME"]
+
+    if models.LoginInformation.query.filter(models.LoginInformation.email == email).one_or_none() is None:
+        #Create the student user:
+        username = email.split("@")[0]
+        user = models.LoginInformation(email, username, None, models.AccountType.STUDENT)
+        db.session.add(user)
+        db.session.commit()
+
+        #Getting the user_id from the LoginInformation table to add personal information
+        current_user = models.LoginInformation.query.filter(models.LoginInformation.email == email).one_or_none()
+        current_user_personal = models.PersonalInformation(first_name, last_name, current_user.id)
+        db.session.add(current_user_personal)
+        db.session.commit()
+
+    
+    user = models.LoginInformation.query.filter(models.LoginInformation.email == email).one_or_none()
+    registration = user.registration_complete
+    token = create_access_token(identity=email)
+
+    return{
+        "LOGIN": True,
+        "REGISTRATION_COMPLETE": registration,
+        "token": token
+    }
