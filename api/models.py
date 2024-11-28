@@ -303,6 +303,16 @@ class Bugs(db.Model):
         self.time_submitted = datetime.utcnow()
 
         return
+        
+    def to_dict(self):
+        return {
+            "Bug ID": self.id,
+            "Reporter ID": self.reporter_id,
+            "Title": self.title,
+            "Description": self.description,
+            "Time Submitted": self.time_submitted,
+            "Bug Reviewed": self.reviewed
+        }
 
 class Shifts(db.Model):
     id = db.Column(db.Integer, primary_key = True, unique = True, nullable = False)
