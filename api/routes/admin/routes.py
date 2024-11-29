@@ -31,3 +31,9 @@ def clear_schedule():
 @jwt_required()
 def get_all_bugreports():
     return jsonify(retrieve_all_bugreports()), 200
+
+@admin_route.route('/delete_bugreport/<int:bug_id>', methods=["DELETE"])
+@jwt_required()
+def delete_bug_report_route(bug_id):
+    result, status_code = delete_bug_report(bug_id)
+    return jsonify(result), status_code

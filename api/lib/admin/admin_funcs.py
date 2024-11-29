@@ -84,3 +84,16 @@ def retrieve_all_bugreports():
         bugreport_list.append(bugreport.to_dict())
 
     return bugreport_list
+
+def delete_bug_report(bug_id):
+    # Fetch the bug report by ID
+    bug_report = db.session.query(models.Bugs).filter(models.Bugs.id == bug_id).one_or_none()
+
+    if not bug_report:
+        return {"ERROR": "Bug report not found"}, 404  # Return a 404 if the bug report doesn't exist
+
+    # Delete the bug report from the database
+    db.session.delete(bug_report)
+    db.session.commit()  # Commit the transaction to remove the bug report from the DB
+
+    return {"SUCCESS": f"Bug report {bug_id} deleted successfully"}, 200  # Return success message
