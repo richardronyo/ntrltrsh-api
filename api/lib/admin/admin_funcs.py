@@ -75,3 +75,12 @@ def clear_schedule_and_shifts():
     db.session.commit()
 
     return {"SUCCESS": True}
+
+def retrieve_all_bugreports():
+    bugreports = db.session.query(models.Bugs).all()
+    bugreport_list = []
+
+    for bugreport in bugreports:
+        bugreport_list.append(bugreport.to_dict())
+
+    return bugreport_list
