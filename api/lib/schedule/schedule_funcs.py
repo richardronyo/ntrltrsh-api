@@ -1,6 +1,7 @@
 from api import models, db
 from datetime import datetime, timedelta
 import random
+import calendar
 
 def update_availability(availability_info, user_id, account_type):
     availability = models.Availability(user_id, account_type, availability_info["MONDAY"], availability_info["TUESDAY"], availability_info["WEDNESDAY"], availability_info["THURSDAY"], availability_info["FRIDAY"], availability_info["SATURDAY"], availability_info["SUNDAY"], availability_info["VACATION"])
@@ -159,7 +160,6 @@ def matchmaking_algorithm():
         day_2 = session_date_2.split(", ")[0]
         date_2 = session_date_2.split(", ")[1]
 
-
         tutoring_session_1 = models.Schedule(student_id_1, tutor.user_id, datetime.strptime(date_1, "%Y-%m-%d"), start_time_1, end_time_1)
         tutoring_session_2 = models.Schedule(student_id_2, tutor.user_id, datetime.strptime(date_2, "%Y-%m-%d"), start_time_2, end_time_2)
 
@@ -173,6 +173,188 @@ def matchmaking_algorithm():
         db.session.commit()
 
     return {"SUCCESS": True}
+
+# Helper function to check if two time periods overlap
+def time_conflict(start_time_1, end_time_1, start_time_2, end_time_2):
+    """Check if two time periods [start_time_1, end_time_1] and [start_time_2, end_time_2] overlap."""
+    return not (end_time_1 <= start_time_2 or end_time_2 <= start_time_1)
+
+# Function to find an available time slot for rescheduling
+def find_available_slot_for_reschedule(tutor_id, date, start_time, end_time):
+    """Find a suitable available time slot in the tutor's schedule."""
+    tutor_availability = models.Availability.query.filter_by(user_id=tutor_id).first()
+    day_of_week = date.strftime('%A').upper()
+
+    # Retrieve availability based on the day of the week
+    if day_of_week == "MONDAY":
+        available_slots = tutor_availability.mon_avail
+    elif day_of_week == "TUESDAY":
+        available_slots = tutor_availability.tue_avail
+    elif day_of_week == "WEDNESDAY":
+        available_slots = tutor_availability.wed_avail
+    elif day_of_week == "THURSDAY":
+        available_slots = tutor_availability.thurs_avail
+    elif day_of_week == "FRIDAY":
+        available_slots = tutor_availability.fri_avail
+    elif day_of_week == "SATURDAY":
+        available_slots = tutor_availability.sat_avail
+    elif day_of_week == "SUNDAY":
+        available_slots = tutor_availability.sun_avail
+
+    # Check if available_slots is a list of tuples (start_time, end_time)
+    print("Available slots before filtering:", available_slots)  # Debugging line
+
+    print("Available slots after filtering:", available_slots)  # Debugging line
+
+    if not available_slots:
+        return None  # No available slots found
+
+    # Randomly choose an available slot
+    new_start_time, new_end_time = get_random_time_slot(available_slots[0], available_slots[1])
+
+    return new_start_time, new_end_time
+
+
+# Function to update the session in the Schedule table after rescheduling
+def reschedule_session(session_2, new_start_time, new_end_time):
+    """Update session_2 with the new times in the database."""
+    session_2.start_time = new_start_time
+    session_2.end_time = new_end_time
+    db.session.commit()
+    print(f"Session {session_2.id} has been rescheduled to {new_start_time} - {new_end_time}")
+
+# Function to check for conflicts and reschedule if necessary
+def check_conflict():
+    """Query the Schedule table, check for conflicts, and reschedule conflicting sessions."""
+    # Query all sessions
+    sessions = models.Schedule.query.all()
+
+    # Group sessions by tutor to easily find conflicts
+    tutor_sessions = {}
+    for session in sessions:
+        tutor_id = session.tutor_id
+        if tutor_id not in tutor_sessions:
+            tutor_sessions[tutor_id] = []
+        tutor_sessions[tutor_id].append(session)
+
+    # Check for conflicts within each tutor's schedule
+    for tutor_id, tutor_sessions_list in tutor_sessions.items():
+        # Sort sessions by date (if needed, depending on your format)
+        tutor_sessions_list.sort(key=lambda x: x.date)
+
+        # Check for conflicts
+        for i in range(len(tutor_sessions_list)):
+            session_1 = tutor_sessions_list[i]
+            for j in range(i + 1, len(tutor_sessions_list)):
+                session_2 = tutor_sessions_list[j]
+
+                # If the sessions conflict (overlap), we need to reschedule session_2
+                if session_1.date == session_2.date and time_conflict(session_1.start_time, session_1.end_time, session_2.start_time, session_2.end_time):
+                    print(f"Conflict found between session {session_1.id} and session {session_2.id}")
+
+                    # Find a new available slot for session_2
+                    new_start_time, new_end_time = find_available_slot_for_reschedule(tutor_id, session_2.date, session_2.start_time, session_2.end_time)
+                    
+                    if new_start_time and new_end_time:
+                        # Reschedule session_2 to the new time slot
+                        reschedule_session(session_2, new_start_time, new_end_time)
+                    else:
+                        print(f"No available slots found to reschedule session {session_2.id}.")
+
+    return {"SUCCESS": True}
+
+
+def check_students():
+    today = datetime.now()
+    days_until_monday = (7 - today.weekday()) % 7
+    next_monday = today + timedelta(days = days_until_monday)
+    
+    next_14_days = [next_monday + timedelta(days = i) for i in range(14)]
+    scheduling_period = [date.strftime('%A, %Y-%m-%d') for date in next_14_days]
+    print(scheduling_period)
+    registered_students = models.LoginInformation.query.filter(models.LoginInformation.registration_complete == True, models.LoginInformation.account_type == models.AccountType.STUDENT).all()
+    scheduled_students= [session.student_id for session in models.Schedule.query.all()]
+    
+    non_scheduled_students = [student for student in registered_students if student.id not in scheduled_students]
+    non_scheduled_student_info = [models.StudentInformation.query.filter(models.StudentInformation.user_id == student.id).one() for student in non_scheduled_students]
+
+    for student in non_scheduled_student_info:
+        subjects = student.math + student.science + student.language + student.english + student.history
+        subject = random.choice(subjects)
+
+        print("Subject of choice: ", subject)
+        tutors = models.TutorInformation.query.all()
+        available_tutors = [tutor for tutor in tutors if subject in tutor.math + tutor.science + tutor.language + tutor.english + tutor.history]
+        print("Available tutors: ", available_tutors)
+        if available_tutors == []:
+            continue
+        tutor = random.choice(available_tutors)
+    
+        print("Chosen Tutor: ", tutor.to_dict())
+
+        tutor_id = tutor.user_id
+        sessions = models.Schedule.query.filter(models.Schedule.tutor_id == tutor_id).all()
+        session_days = [calendar.day_name[int(session.day)].upper() for session in sessions]
+
+        print("Weekdays with existing sessions: ", session_days)
+
+        availability = models.Availability.query.filter(models.Availability.user_id == tutor_id).one_or_none()
+        if availability is None:
+            continue
+        print("Availability: ", availability.to_dict())
+        availability_list = [("MONDAY", availability.mon_avail), ("TUESDAY", availability.tue_avail), ("WEDNESDAY", availability.wed_avail), ("THURSDAY", availability.thurs_avail), ("FRIDAY", availability.fri_avail), ("SATURDAY", availability.sat_avail), ("SUNDAY", availability.sun_avail)]
+        vacation = availability.vacation_days
+
+        available_days= [available_day[0] for available_day in availability_list]
+
+        if available_days == session_days:
+            continue
+
+        new_session_day = random.choice(availability_list)
+        while new_session_day[0] in session_days or new_session_day[1] == []:
+            new_session_day = random.choice(availability_list)
+
+        print("Chosen day for new session: ", new_session_day)
+
+        potential_days = [date for date in scheduling_period if date.split(", ")[0].upper() == new_session_day[0]]
+        print("Potential Session Days: ", potential_days)
+        
+        if potential_days[0] in vacation and potential_days[1] in vacation:
+            session_days.append(new_session_day[0])
+
+            new_session_day = random.choice(availability_list)
+            while new_session_day[0] in session_days:
+                new_session_day = random.choice(availability_list)
+        
+        window_start = new_session_day[1][0]
+        window_end = new_session_day[1][1]
+        start_time, end_time = get_random_time_slot(window_start, window_end)
+
+        date = random.choice(potential_days)
+        print("New Session Day: ", date)
+
+        while date.split(", ")[1] in vacation:
+            date = random.choice(potential_days)
+        session = models.Schedule(student.user_id, tutor_id, datetime.strptime(date.split(", ")[1], "%Y-%m-%d"), start_time, end_time)
+        shift = models.Shifts.query.filter(models.Shifts.tutor_id == tutor_id, models.Shifts.start_day == scheduling_period[0].split(", ")[1]).one_or_none()
+
+        if shift is None:
+            shift = models.Shifts(tutor_id, scheduling_period[0].split(", ")[1], scheduling_period[-1].split(", ")[1])
+            db.session.add(shift)
+        else:
+            shift.add_shift()
+
+        
+        db.session.add(session)
+        db.session.commit()
+
+        
+
+    return {"SUCCESS": True}
+
+
+
+
 
 def cancel_session(user_id, cancel_data):
     """

@@ -195,10 +195,9 @@ class TutorInformation(db.Model):
             "Language": [subject.name for subject in self.language] if self.language else [],
             "English": [subject.name for subject in self.english] if self.english else [],
             "History": [subject.name for subject in self.history] if self.history else [],
-            "Years of Experience": self.experience,            
-            "Undergraduate Studies": self.undergrad_college if self.undergrad_complete else f"{self.undergrad_college} (Incomplete)",
-            "Graduate Studies": [f"{self.graduate_college[i]} (Incomplete)" if not self.graduate_completed[i] else f"{self.graduate_college[i]}" for i in range(len(self.graduate_college))],
-            "Completed Onboarding Training": self.training_complete
+            "Undergraduate Studies": self.undergrad_college,
+            "Graduate Studies": self.graduate_college,
+            "Teaching Certification": self.teaching_certification
         }
 
 class Availability(db.Model):
@@ -241,8 +240,14 @@ class Availability(db.Model):
 
     def to_dict(self):
         return{
-            "Month": self.month,
-            "Availability": self.availability
+            "MONDAY": self.mon_avail,
+            "TUESDAY": self.tue_avail,
+            "WEDNESDAY": self.wed_avail,
+            "THURSDAY": self.thurs_avail,
+            "FRIDAY": self.fri_avail,
+            "SATURDAY": self.sat_avail,
+            "SUNDAY": self.sun_avail,
+            "VACATION": self.vacation_days
         }
     
 class Messaging(db.Model):
