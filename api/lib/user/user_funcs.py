@@ -67,9 +67,13 @@ def get_profile_info(user_id):
             account_type = "Tutor"
         
         user_email_address = user_login.email
-        user_personal = models.PersonalInformation.query.filter(models.PersonalInformation.user_id == user_id).one_or_none()
-        first_name = user_personal.first_name
-        last_name = user_personal.last_name
+        first_name = "Admin"
+        last_name = "Account"
+        
+        if user_login.account_type != models.AccountType.ADMIN:
+            user_personal = models.PersonalInformation.query.filter(models.PersonalInformation.user_id == user_id).one_or_none()
+            first_name = user_personal.first_name
+            last_name = user_personal.last_name
 
         full_name = f"{first_name} {last_name}"
 
