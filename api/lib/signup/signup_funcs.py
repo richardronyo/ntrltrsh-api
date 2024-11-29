@@ -29,7 +29,7 @@ def add_login_information(user):
     emails = [login.email.upper() for login in login_info]
     usernames = [login.email.upper() for login in login_info]
 
-    if email.upper() in emails or usernames.upper() in usernames:
+    if email.upper() in emails or username.upper() in usernames:
         return {"SUCCESS": False}
     
     user = models.LoginInformation(user['EMAIL'], user['USERNAME'], user['PASSWORD'], account_type)
