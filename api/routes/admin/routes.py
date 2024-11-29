@@ -34,6 +34,11 @@ def get_all_bugreports():
 
 @admin_route.route('/delete_bugreport/<int:bug_id>', methods=["DELETE"])
 @jwt_required()
-def delete_bug_report_route(bug_id):
-    result, status_code = delete_bug_report(bug_id)
-    return jsonify(result), status_code
+def delete_bugreport(bug_id):
+    bug = models.Bugs.query.filter_by(id=bug_id).one_or_none()
+    if bug:
+        db.session.delete(bug)
+        db.session.commit()
+        return jsonify({"SUCCESS": True}), 200
+    else:
+        return jsonify({"SUCCESS": False, "message": "Bug report not found"}), 404
