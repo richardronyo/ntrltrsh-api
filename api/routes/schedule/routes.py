@@ -1,7 +1,7 @@
 from api.routes.schedule import schedule_route
 from flask import request, jsonify
 from flask_jwt_extended import jwt_required, current_user
-from api.lib.schedule.schedule_funcs import update_availability, matchmaking_algorithm
+from api.lib.schedule.schedule_funcs import update_availability, matchmaking_algorithm, cancel_session
 
 @schedule_route.route('/update', methods=["POST"])
 @jwt_required()
@@ -38,6 +38,24 @@ def match():
     """
 
     return jsonify(matchmaking_algorithm()), 200
+
+@schedule_route.route('/cancel', methods = ["DELETE"])
+@jwt_required()
+def cancel():
+    """
+    This route will cancel a tutoring session
+    {
+        "DATE": "YYYY-MM-DD",
+        "EMAIL": str 
+    }
+    """
+
+    user_id = current_user.id
+    cancel_data = request.get_json()
+
+    return jsonify(cancel_session(user_id, cancel_data)), 200
+
+
 
     
 

@@ -57,7 +57,9 @@ def matchmaking_algorithm():
     next_monday = today + timedelta(days = days_until_monday)
     
     next_14_days = [next_monday + timedelta(days = i) for i in range(14)]
-    scheduling_period = [date.strftime('%A, %Y-%m-%d') for date in next_14_days]
+    first_week = [date.strftime('%A, %Y-%m-%d') for date in next_14_days[:7]]  # First week
+    second_week = [date.strftime('%A, %Y-%m-%d') for date in next_14_days[7:]]  # Second week
+    scheduling_period = [first_week, second_week]
 
     #Converting Availability into a list of tuples (DAY_OF_WEEK, START_TIME, END_TIME) and getting the vacation dates
     vacations = [availability.vacation_days for availability in availability_info] #[[date1, date2, ...], [], ..., []]
@@ -75,58 +77,156 @@ def matchmaking_algorithm():
         vacation = vacations[i]
 
         #Picking a random day they are available to schedule them
-        day_of_session, times = random.choice(availability)
-        while times == []:
-            day_of_session, times = random.choice(availability)
+        day_of_session_1, times_1 = random.choice(availability)  # First week
+        while times_1 == []:
+            day_of_session_1, times_1 = random.choice(availability)
+
+        day_of_session_2, times_2 = random.choice(availability)  # Second week
+        while times_2 == []:
+            day_of_session_2, times_2 = random.choice(availability)
 
         #Picking a random choice of subject to find a student to match with
-        subject = random.choice(subjects)
+        subject_1 = random.choice(subjects)
+        subject_2 = random.choice(subjects)
 
-
-        appropriate_students = [student for student in student_subjects if subject in student[1]]
+        appropriate_students_1 = [student for student in student_subjects if subject_1 in student[1]]
+        appropriate_students_2 = [student for student in student_subjects if subject_2 in student[1]]
         
         #If there are no students and they can only help with one subject, we are going to continue to the next tutor
-        if appropriate_students == [] and len(subjects) == 1:
+        if appropriate_students_1 == [] and len(subjects) == 1:
+            continue
+
+        if appropriate_students_2 == [] and len(subjects) == 1:
             continue
 
         
         #If there are no students, picking another subjects.  Repeating this process 3 times
-        if appropriate_students == []:
+        if appropriate_students_1 == []:
             new_subject = random.choice(subjects)
             for i in range(3):
                 while new_subject == subject:
                     new_subject = random.choice(subjects)
-                appropriate_students = [student for student in student_subjects if new_subject in student[1]]
+                appropriate_students_1 = [student for student in student_subjects if new_subject in student[1]]
 
-                if appropriate_students != [] and i <= 2:
+                if appropriate_students_1 != [] and i <= 2:
                     subject = new_subject
                     break
             continue
 
-        student = random.choice(appropriate_students)
-        student_id = student[0]
-        window_start = times[0]
-        window_end = times[1]
+        if appropriate_students_2 == []:
+            new_subject = random.choice(subjects)
+            for i in range(3):
+                while new_subject == subject:
+                    new_subject = random.choice(subjects)
+                appropriate_students_2 = [student for student in student_subjects if new_subject in student[1]]
 
-        start_time, end_time = get_random_time_slot(window_start, window_end)
+                if appropriate_students_2 != [] and i <= 2:
+                    subject = new_subject
+                    break
+            continue
+
+        # Choosing the first student for the first week
+        student_1 = random.choice(appropriate_students_1)
+        student_id_1 = student_1[0]
+        window_start_1 = times_1[0]
+        window_end_1 = times_1[1]
+
+        start_time_1, end_time_1 = get_random_time_slot(window_start_1, window_end_1)
+
+        # Selecting the second student for the second week
+        student_2 = random.choice(appropriate_students_2)
+        student_id_2 = student_2[0]
+        window_start_2 = times_2[0]
+        window_end_2 = times_2[1]
+
+        start_time_2, end_time_2 = get_random_time_slot(window_start_2, window_end_2)
 
         schedule_info = models.Schedule.query.all()
         existing_sessions = [(session.day, session.date, session.start_time, session.end_time) for session in schedule_info]
 
-        possible_dates = [day for day in scheduling_period if day.split(", ")[0].upper() == day_of_session and (day.split(", ")[1] not in vacation or day.split(", ")[1] not in existing_sessions)]
-        print(possible_dates)
-        session_date = random.choice(possible_dates)
+        possible_dates_1 = [day for day in scheduling_period[0] if day.split(", ")[0].upper() == day_of_session_1 and (day.split(", ")[1] not in vacation or day.split(", ")[1] not in existing_sessions)]
+        possible_dates_2 = [day for day in scheduling_period[1] if day.split(", ")[0].upper() == day_of_session_2 and (day.split(", ")[1] not in vacation or day.split(", ")[1] not in existing_sessions)]
 
-        day = session_date.split(", ")[0]
-        date = session_date.split(", ")[1]
+        print(possible_dates_1)
+        print(possible_dates_2)
+
+        session_date_1 = random.choice(possible_dates_1)
+        session_date_2 = random.choice(possible_dates_2)
+
+        day_1 = session_date_1.split(", ")[0]
+        date_1 = session_date_1.split(", ")[1]
+        
+        day_2 = session_date_2.split(", ")[0]
+        date_2 = session_date_2.split(", ")[1]
 
 
-        tutoring_session = models.Schedule(student_id, tutor.user_id, datetime.strptime(date, "%Y-%m-%d"), start_time, end_time)
-        shifts = models.Shifts(tutor.user_id, scheduling_period[0], scheduling_period[-1])
+        tutoring_session_1 = models.Schedule(student_id_1, tutor.user_id, datetime.strptime(date_1, "%Y-%m-%d"), start_time_1, end_time_1)
+        tutoring_session_2 = models.Schedule(student_id_2, tutor.user_id, datetime.strptime(date_2, "%Y-%m-%d"), start_time_2, end_time_2)
 
-        print(tutoring_session.to_dict())
-        db.session.add(tutoring_session)
+        shifts = models.Shifts(tutor.user_id, scheduling_period[0][0].split(", ")[1], scheduling_period[1][-1].split(", ")[1])
+        shifts.add_shift()
+
+        print(tutoring_session_1.to_dict())
+        db.session.add(tutoring_session_1)
+        db.session.add(tutoring_session_2)
         db.session.add(shifts)
         db.session.commit()
 
     return {"SUCCESS": True}
+
+def cancel_session(user_id, cancel_data):
+    """
+    This helper function will cancel a tutoring session
+    {
+        "DATE": "YYYY-MM-DD",
+        "EMAIL": str 
+    }
+    """
+
+    date = datetime.strptime(cancel_data["DATE"], "%Y-%m-%d")
+    email = cancel_data["EMAIL"]
+
+    login = models.LoginInformation.query.filter(models.LoginInformation.id == user_id).one_or_none()
+
+    account_type = login.account_type
+
+    if account_type == models.AccountType.STUDENT: #This means a student is cancelling. We must find the tutor_id to get the correct session
+        tutor_account = models.LoginInformation.query.filter(models.LoginInformation.email == email).one_or_none()
+        tutor_id = tutor_account.id
+        
+        tutor_session = models.Schedule.query.filter(models.Schedule.tutor_id == tutor_id, models.Schedule.student_id == user_id, models.Schedule.date == date).one_or_none()
+
+        shifts = models.Shifts.query.filter(models.Shifts.tutor_id == tutor_id).all()
+        for shift_period in shifts:
+            start_day = datetime.strptime(shift_period.start_day, "%Y-%m-%d")
+            end_day = datetime.strptime(shift_period.end_day, "%Y-%m-%d")
+
+            if start_day <= date and end_day >= date:
+                shift = shift_period
+                break
+
+    else:
+        student_account = models.LoginInformation.query.filter(models.LoginInformation.email == email).one_or_none()
+        student_id = student_account.id
+
+        tutor_session = models.Schedule.query.filter(models.Schedule.tutor_id == user_id, models.Schedule.student_id == student_id, models.Schedule.date == date).one_or_none()
+        shifts = models.Shifts.query.filter(models.Shifts.tutor_id == user_id).all()
+        for shift_period in shifts:
+            start_day = datetime.strptime(shift_period.start_day, "%Y-%m-%d")
+            end_day = datetime.strptime(shift_period.end_day, "%Y-%m-%d")
+
+            if start_day <= date and end_day >= date:
+                shift = shift_period
+                break
+    shift.num_of_shifts -= 1
+    db.session.delete(tutor_session)
+    db.session.commit()
+
+    return {"SUCCESS": True}
+
+
+
+
+
+
+
