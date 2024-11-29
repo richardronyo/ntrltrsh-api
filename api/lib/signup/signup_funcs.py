@@ -22,7 +22,14 @@ def add_login_information(user):
     account_type = models.AccountType(user['ACCOUNT_TYPE'])
 
     #If there is a user with the same username or email, return False
-    if len(models.LoginInformation.query.filter(models.LoginInformation.username.upper() == user["USERNAME"].upper()).all()) == 1 or len(models.LoginInformation.query.filter(models.LoginInformation.email.upper() == user["EMAIL"].upper()).all()) == 1:
+    email = user["EMAIL"]
+    username = user["USERNAME"]
+
+    login_info = models.LoginInformation.query.all()
+    emails = [login.email.upper() for login in login_info]
+    usernames = [login.email.upper() for login in login_info]
+
+    if email.upper() in emails or usernames.upper() in usernames:
         return {"SUCCESS": False}
     
     user = models.LoginInformation(user['EMAIL'], user['USERNAME'], user['PASSWORD'], account_type)
