@@ -274,7 +274,9 @@ class Schedule(db.Model):
     start_time = db.Column(db.VARCHAR(1000), nullable=False)
     end_time = db.Column(db.VARCHAR(1000), nullable=False)
 
-    def __init__(self, student_id, tutor_id, date, start_time, end_time):
+    location = db.Column(db.VARCHAR(1000), nullable=False)
+
+    def __init__(self, student_id, tutor_id, date, start_time, end_time, location = "Zoom"):
         self.student_id = student_id
         self.tutor_id = tutor_id
         self.date = date
@@ -282,6 +284,7 @@ class Schedule(db.Model):
         self.day_generated = datetime.utcnow()
         self.start_time = start_time
         self.end_time = end_time
+        self.location = location
 
     def to_dict(self):
         return{

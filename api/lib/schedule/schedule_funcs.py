@@ -306,8 +306,13 @@ def check_students():
         vacation = availability.vacation_days
 
         available_days= [available_day[0] for available_day in availability_list]
+        available_session_equal = True
 
-        if available_days == session_days:
+        for day in available_days:
+            if day not in session_days:
+                available_session_equal = False
+
+        if available_session_equal:
             continue
 
         new_session_day = random.choice(availability_list)
@@ -407,8 +412,68 @@ def cancel_session(user_id, cancel_data):
     return {"SUCCESS": True}
 
 
+from datetime import datetime, timedelta
+
+def get_sessions(user_id):
+    """
+    This method gets all of the tutoring sessions that belong to a user
+    """
+    login_info = models.LoginInformation.query.filter(models.LoginInformation.id == user_id).one_or_none()
+    account_type = login_info.account_type
+    
+    if account_type == models.AccountType.STUDENT:
+        all_sessions = models.Schedule.query.filter(models.Schedule.student_id == user_id).all()
+    elif account_type == models.AccountType.TUTOR:
+        all_sessions = models.Schedule.query.filter(models.Schedule.tutor_id == user_id).all()
+    else:
+        all_sessions = models.Schedule.query.all()
+
+    # Ensure the date comparison only considers the date part (ignores the time)
+    yesterday = (datetime.today() - timedelta(days=1)).date()
+
+    # Filter sessions from the past 24 hours
+    sessions = [session for session in all_sessions if session.date.date() >= yesterday]
+
+    # Log sessions for debugging
+    print(sessions)
+
+    session_info = []
+
+    for session in sessions:
+        if account_type == models.AccountType.STUDENT:
+            tutor_login_info = models.LoginInformation.query.filter(models.LoginInformation.id == session.tutor_id).one_or_none()
+
+            email = tutor_login_info.email
+            date = session.date.strftime("%Y-%m-%d")
+            start_time = session.start_time
+            end_time = session.end_time
+            location = session.location
+
+            session_info.append({
+                "EMAIL": email,
+                "DATE": date,
+                "START_TIME": start_time,
+                "END_TIME": end_time,
+                "LOCATION": location
+            })
+        elif account_type == models.AccountType.TUTOR:
+            student_login_info = models.LoginInformation.query.filter(models.LoginInformation.id == session.student_id).one_or_none()
+
+            email = student_login_info.email
+            date = session.date.strftime("%Y-%m-%d")
+            start_time = session.start_time
+            end_time = session.end_time
+            location = session.location
+
+            session_info.append({
+                "EMAIL": email,
+                "DATE": date,
+                "START_TIME": start_time,
+                "END_TIME": end_time,
+                "LOCATION": location
+            })
+
+    return session_info
 
 
-
-
-
+    

@@ -1,7 +1,7 @@
 from api.routes.schedule import schedule_route
 from flask import request, jsonify
 from flask_jwt_extended import jwt_required, current_user
-from api.lib.schedule.schedule_funcs import update_availability, matchmaking_algorithm, cancel_session, check_conflict, check_students
+from api.lib.schedule.schedule_funcs import update_availability, matchmaking_algorithm, cancel_session, check_conflict, check_students, get_sessions as gs
 
 @schedule_route.route('/update', methods=["POST"])
 @jwt_required()
@@ -58,7 +58,12 @@ def cancel():
     return jsonify(cancel_session(user_id, cancel_data)), 200
 
 
+@schedule_route.route('/get', methods = ["GET"])
+@jwt_required()
+def get_sessions():
+    """
+    This route gets all the sessions for a user that are on or after the current day
+    """
 
-    
-
-
+    user_id = current_user.id
+    return jsonify(gs(user_id)), 200
