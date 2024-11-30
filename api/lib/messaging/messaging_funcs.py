@@ -119,3 +119,37 @@ def get_conversation(user_id, recipient_username):
         })
 
     return {"CONVERSATION": conversation}
+
+def fetch_contacts(user_id):
+    """
+    Retrieve all users who have had a conversation with the given user.
+    """
+    # Find all users who sent messages to or received messages from the current user
+    sent_to_user = db.session.query(models.Messaging.receiver_id).filter(
+        models.Messaging.sender_id == user_id
+    ).distinct()
+
+    received_from_user = db.session.query(models.Messaging.sender_id).filter(
+        models.Messaging.receiver_id == user_id
+    ).distinct()
+
+    # Combine results to find all unique contacts (use a set to avoid duplicates)
+    contact_ids = set([row[0] for row in sent_to_user] + [row[0] for row in received_from_user])
+
+    # Query user details for all contact IDs in the set
+    contacts = db.session.query(models.LoginInformation, models.PersonalInformation).filter(
+        models.LoginInformation.id.in_(contact_ids),
+        models.LoginInformation.id == models.PersonalInformation.user_id
+    ).all()
+
+    # Construct response
+    contact_list = []
+    for login_info, personal_info in contacts:
+        contact_list.append({
+            "FIRSTNAME": personal_info.first_name,
+            "LASTNAME": personal_info.last_name,
+            "USERNAME": login_info.username
+        })
+
+    # We will return these values so that we can dynamically create users on the messaging screen.
+    return {"CONTACTS": contact_list}
