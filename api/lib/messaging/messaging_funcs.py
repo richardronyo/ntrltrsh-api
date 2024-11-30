@@ -123,6 +123,7 @@ def get_conversation(user_id, recipient_username):
 def fetch_contacts(user_id):
     """
     Retrieve all users who have had a conversation with the given user.
+    Return other user's first/last names, username, most recent message with them, and it's formatted timestamp.
     """
     # Find all users who sent messages to or received messages from the current user
     sent_to_user = db.session.query(models.Messaging.receiver_id).filter(
@@ -133,23 +134,31 @@ def fetch_contacts(user_id):
         models.Messaging.receiver_id == user_id
     ).distinct()
 
-    # Combine results to find all unique contacts (use a set to avoid duplicates)
+    # Combine results to find all unique contact IDs
     contact_ids = set([row[0] for row in sent_to_user] + [row[0] for row in received_from_user])
 
-    # Query user details for all contact IDs in the set
-    contacts = db.session.query(models.LoginInformation, models.PersonalInformation).filter(
-        models.LoginInformation.id.in_(contact_ids),
-        models.LoginInformation.id == models.PersonalInformation.user_id
-    ).all()
+    # Query user details and most recent message for all contact IDs
+    contacts = []
+    for contact_id in contact_ids:
+        # Get the most recent message with this contact
+        recent_message = db.session.query(models.Messaging).filter(
+            (models.Messaging.sender_id == user_id) & (models.Messaging.receiver_id == contact_id) |
+            (models.Messaging.sender_id == contact_id) & (models.Messaging.receiver_id == user_id)
+        ).order_by(models.Messaging.time_sent.desc()).first()
 
-    # Construct response
-    contact_list = []
-    for login_info, personal_info in contacts:
-        contact_list.append({
-            "FIRSTNAME": personal_info.first_name,
-            "LASTNAME": personal_info.last_name,
-            "USERNAME": login_info.username
-        })
+        if recent_message:
+            # Get the contact's user details
+            contact_login_info = models.LoginInformation.query.filter_by(id=contact_id).one_or_none()
+            contact_personal_info = models.PersonalInformation.query.filter_by(user_id=contact_id).one_or_none()
 
-    # We will return these values so that we can dynamically create users on the messaging screen.
-    return {"CONTACTS": contact_list}
+            if contact_login_info and contact_personal_info:
+                contacts.append({
+                    "FIRSTNAME": contact_personal_info.first_name,
+                    "LASTNAME": contact_personal_info.last_name,
+                    "USERNAME": contact_login_info.username,
+                    "LASTMESSAGE": recent_message.message,
+                    "TIMESTAMP": recent_message.time_sent.strftime("%Y-%m-%d %H:%M:%S")
+                })
+
+    return {"CONTACTS": contacts}
+
