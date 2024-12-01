@@ -61,8 +61,6 @@ def get_contacts():
     Get all users who have had a conversation with the current user.
     """
     user_id = current_user.id
-
-    # Use the helper function to fetch contacts
     result = fetch_contacts(user_id)
 
     return jsonify(result), 200
