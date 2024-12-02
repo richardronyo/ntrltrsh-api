@@ -157,7 +157,7 @@ def fetch_contacts(user_id):
                     "LASTNAME": contact_personal_info.last_name,
                     "USERNAME": contact_login_info.username,
                     "LASTMESSAGE": recent_message.message,
-                    "TIMESTAMP": recent_message.time_sent.strftime("%Y-%m-%dT%H:%MZ") # Correctly formatted as per Jay's info
+                    "TIMESTAMP": recent_message.time_sent.strftime("%Y-%m-%dT%H:%M:%SZ") # Correctly formatted as per Jay's info (need to pass seconds for formatting)
                 })
 
     return {"CONTACTS": contacts}
