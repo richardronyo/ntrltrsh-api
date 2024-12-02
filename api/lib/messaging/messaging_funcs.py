@@ -115,7 +115,7 @@ def get_conversation(user_id, recipient_username):
             "MESSAGE": message.message,
             "SENDER_USERNAME": sender_username,
             "SENDER_FULL_NAME": sender_full_name,
-            "TIMESTAMP": message.time_sent         # I'm returning this so I can try to implement timestamps in the UI side, but they won't be exactly right without some modification to account for timezones
+            "TIMESTAMP": message.time_sent.strftime("%Y-%m-%dT%H:%M:%SZ")
         })
 
     return {"CONVERSATION": conversation}
