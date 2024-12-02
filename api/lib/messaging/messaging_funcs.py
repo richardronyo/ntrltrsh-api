@@ -119,3 +119,46 @@ def get_conversation(user_id, recipient_username):
         })
 
     return {"CONVERSATION": conversation}
+
+def fetch_contacts(user_id):
+    """
+    Retrieve all users who have had a conversation with the given user.
+    Return other user's first/last names, username, most recent message with them, and it's formatted timestamp.
+    """
+    # Find all users who sent messages to or received messages from the current user
+    sent_to_user = db.session.query(models.Messaging.receiver_id).filter(
+        models.Messaging.sender_id == user_id
+    ).distinct()
+
+    received_from_user = db.session.query(models.Messaging.sender_id).filter(
+        models.Messaging.receiver_id == user_id
+    ).distinct()
+
+    # Combine results to find all unique contact IDs
+    contact_ids = set([row[0] for row in sent_to_user] + [row[0] for row in received_from_user])
+
+    # Query user details and most recent message for all contact IDs
+    contacts = []
+    for contact_id in contact_ids:
+        # Get the most recent message with this contact
+        recent_message = db.session.query(models.Messaging).filter(
+            (models.Messaging.sender_id == user_id) & (models.Messaging.receiver_id == contact_id) |
+            (models.Messaging.sender_id == contact_id) & (models.Messaging.receiver_id == user_id)
+        ).order_by(models.Messaging.time_sent.desc()).first()
+
+        if recent_message:
+            # Get the contact's user details
+            contact_login_info = models.LoginInformation.query.filter_by(id=contact_id).one_or_none()
+            contact_personal_info = models.PersonalInformation.query.filter_by(user_id=contact_id).one_or_none()
+
+            if contact_login_info and contact_personal_info:
+                contacts.append({
+                    "FIRSTNAME": contact_personal_info.first_name,
+                    "LASTNAME": contact_personal_info.last_name,
+                    "USERNAME": contact_login_info.username,
+                    "LASTMESSAGE": recent_message.message,
+                    "TIMESTAMP": recent_message.time_sent.strftime("%Y-%m-%dT%H:%MZ") # Correctly formatted as per Jay's info
+                })
+
+    return {"CONTACTS": contacts}
+

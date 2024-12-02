@@ -2,7 +2,7 @@ from api.routes.messaging import messaging_route
 
 from flask import request, jsonify
 from flask_jwt_extended import current_user, jwt_required
-from api.lib.messaging.messaging_funcs import send_message, get_all_messages, get_conversation
+from api.lib.messaging.messaging_funcs import send_message, get_all_messages, get_conversation, fetch_contacts
 
 @messaging_route.route('/send', methods = ["POST"])
 @jwt_required()
@@ -54,3 +54,13 @@ def conversation():
 
     return jsonify(conversation), 200
 
+@messaging_route.route('/get_contacts', methods=["GET"])
+@jwt_required()
+def get_contacts():
+    """
+    Get all users who have had a conversation with the current user.
+    """
+    user_id = current_user.id
+    result = fetch_contacts(user_id)
+
+    return jsonify(result), 200
