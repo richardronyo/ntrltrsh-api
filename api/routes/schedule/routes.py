@@ -1,7 +1,7 @@
 from api.routes.schedule import schedule_route
 from flask import request, jsonify
 from flask_jwt_extended import jwt_required, current_user
-from api.lib.schedule.schedule_funcs import update_availability, matchmaking_algorithm, cancel_session, check_conflict, check_students, get_sessions as gs
+from api.lib.schedule.schedule_funcs import update_availability, matchmaking_algorithm, cancel_session, check_conflict, check_students, get_sessions as gs, get_session_users
 
 @schedule_route.route('/update', methods=["POST"])
 @jwt_required()
@@ -67,3 +67,13 @@ def get_sessions():
 
     user_id = current_user.id
     return jsonify(gs(user_id)), 200
+
+@schedule_route.route('/get_match_names', methods = ["GET"])
+@jwt_required()
+def get_session_matches():
+    """
+    This route gets all names and usernames of users you're matched with on or after the current day
+    """
+
+    user_id = current_user.id
+    return jsonify(get_session_users(user_id)), 200

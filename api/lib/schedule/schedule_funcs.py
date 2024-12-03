@@ -477,3 +477,51 @@ def get_sessions(user_id):
 
 
     
+def get_session_users(user_id):
+    """
+    This method gets all of the users that the current user has a session with in this session period
+    """
+    login_info = models.LoginInformation.query.filter(models.LoginInformation.id == user_id).one_or_none()
+    account_type = login_info.account_type
+    
+    if account_type == models.AccountType.STUDENT:
+        all_sessions = models.Schedule.query.filter(models.Schedule.student_id == user_id).all()
+    elif account_type == models.AccountType.TUTOR:
+        all_sessions = models.Schedule.query.filter(models.Schedule.tutor_id == user_id).all()
+    else:
+        all_sessions = models.Schedule.query.all() # I guess we can keep this so admin can message people too
+
+    # Log sessions for debugging
+    print(all_sessions)
+
+    session_users = []
+
+    for session in all_sessions:
+        if account_type == models.AccountType.STUDENT:
+            tutor_login_info = models.LoginInformation.query.filter(models.LoginInformation.id == session.tutor_id).one_or_none()
+            tutor_personal_info = models.PersonalInformation.query.filter(models.PersonalInformation.user_id == session.tutor_id).one_or_none()
+
+            fname = tutor_personal_info.first_name
+            lname = tutor_personal_info.last_name
+            username = tutor_login_info.username
+
+            session_users.append({
+                "FIRST_NAME": fname,
+                "LAST_NAME": lname,
+                "USERNAME": username
+            })
+        elif account_type == models.AccountType.TUTOR:
+            student_login_info = models.LoginInformation.query.filter(models.LoginInformation.id == session.student_id).one_or_none()
+            student_personal_info = models.PersonalInformation.query.filter(models.PersonalInformation.user_id == session.student_id).one_or_none()
+
+            fname = student_personal_info.first_name
+            lname = student_personal_info.last_name
+            username = student_login_info.username
+
+            session_users.append({
+                "FIRST_NAME": fname,
+                "LAST_NAME": lname,
+                "USERNAME": username
+            })
+
+    return session_users
