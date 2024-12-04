@@ -3,7 +3,7 @@ from api.routes.admin import admin_route
 from flask import request, jsonify
 from flask_jwt_extended import jwt_required, current_user
 
-from api.lib.admin.admin_funcs import retrieve_all_users, clear_database, change_account_type, create_admin, clear_schedule_and_shifts, retrieve_all_bugreports, get_all_students
+from api.lib.admin.admin_funcs import retrieve_all_users, clear_database, change_account_type, create_admin, clear_schedule_and_shifts, retrieve_all_bugreports, get_all_students, get_all_tutors
 
 @admin_route.route('/all_users', methods=["GET"])
 def get_all_users():
@@ -35,3 +35,7 @@ def get_all_bugreports():
 @admin_route.route('/get_students', methods = ["GET"])
 def students():
     return jsonify(get_all_students()), 200
+
+@admin_route.route('/get_tutors', methods = ["GET"])
+def tutors():
+    return jsonify(get_all_tutors()), 200

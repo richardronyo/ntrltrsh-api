@@ -106,3 +106,25 @@ def get_all_students():
         "SUCCESS": True,
         "STUDENTS": student_info
     }
+
+def get_all_tutors():
+    all_tutors = models.LoginInformation.query.filter(models.LoginInformation.account_type == models.AccountType.TUTOR).all()
+
+    tutor_info = []
+    for tutor in all_tutors:
+        tutor_personal = models.PersonalInformation.query.filter(models.PersonalInformation.user_id == tutor.id).one_or_none()
+
+        if tutor_personal:
+            tutor_info.append(
+                {
+                    "EMAIL": tutor.email,
+                    "USERNAME": tutor.username,
+                    "FIRST_NAME": tutor_personal.first_name,
+                    "LAST_NAME": tutor_personal.last_name
+                }
+            )
+    
+    return {
+        "SUCCESS": True,
+        "TUTORS": tutor_info
+    }
