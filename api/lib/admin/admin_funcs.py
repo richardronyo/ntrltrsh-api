@@ -84,3 +84,25 @@ def retrieve_all_bugreports():
         bugreport_list.append(bugreport.to_dict())
 
     return bugreport_list
+
+def get_all_students():
+    all_students = models.LoginInformation.query.filter(models.LoginInformation.account_type == models.AccountType.STUDENT).all()
+
+    student_info = []
+    for student in all_students:
+        student_personal = models.PersonalInformation.query.filter(models.PersonalInformation.user_id == student.id).one_or_none()
+
+        if student_personal:
+            student_info.append(
+                {
+                    "EMAIL": student.email,
+                    "USERNAME": student.username,
+                    "FIRST_NAME": student_personal.first_name,
+                    "LAST_NAME": student_personal.last_name
+                }
+            )
+
+    return {
+        "SUCCESS": True,
+        "STUDENTS": student_info
+    }
