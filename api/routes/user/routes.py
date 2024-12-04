@@ -3,7 +3,7 @@ from api.routes.user import user_route
 from flask_jwt_extended import current_user, jwt_required
 from flask import request, jsonify
 
-from api.lib.user.user_funcs import reset_password, remove_personal_info, get_profile_info, edit_user_info, delete_user, send_bugreport
+from api.lib.user.user_funcs import reset_password, remove_personal_info, get_profile_info, edit_user_info, delete_user, send_bugreport, get_profile_pic
 
 @user_route.route('/reset_password', methods=["PUT"])
 @jwt_required()
@@ -89,3 +89,14 @@ def bugreport():
         bugreport_info = request.get_json()
 
         return jsonify(send_bugreport(user_id, bugreport_info)), 200
+
+@user_route.route('/profile_pic', methods = ["GET"])
+@jwt_required()
+def profilepic():
+     """
+     This route will return a link to a user's profile picture
+     """
+
+     user_id = current_user.id
+
+     return jsonify(get_profile_pic(user_id)), 200

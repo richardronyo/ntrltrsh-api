@@ -3,6 +3,8 @@ from api import models, db
 from sqlalchemy.sql import text
 from api.lib.Security.AESPython import hash_password_with_salt, split_salt_and_password
 
+from azure.storage.blob import BlobServiceClient, PublicAccess
+
 def reset_password(password_info, user_id):
     """
     This function will allow a user to reset their password
@@ -161,3 +163,34 @@ def send_bugreport(user_id, bugreport_info):
     return {"SUCCESS": True}
         
     #return {"SUCCESS": False}
+
+def get_profile_pic(user_id):
+    """
+    This route will return a link to a user's profile picture
+    """
+    CONNECTION_STRING = "DefaultEndpointsProtocol=https;AccountName=ntrltrshblob;AccountKey=i3H1VXstjf0GIotcMctbTsiwKnTcgEJBiUYGEakvKAfH1g7GbXYPVaOIHrAthxcHYmErrjrBoFcG+AStWm/5bA==;EndpointSuffix=core.windows.net"
+
+    blob_service_client = BlobServiceClient.from_connection_string(CONNECTION_STRING)
+    container_client = blob_service_client.get_container_client("user-files")
+    container_client.set_container_access_policy(signed_identifiers={}, public_access=PublicAccess.Blob)
+
+    user = models.LoginInformation.query.filter(models.LoginInformation.id == user_id).one_or_none()
+
+    url = ""
+    if user:
+        username = user.username
+
+        blob_list = container_client.list_blobs()
+        profile_pic_string = f"{username}/profile"
+        for file in blob_list:
+            if profile_pic_string in file.name:
+                filename = file.name
+
+        if filename:
+            blob_client = container_client.get_blob_client(filename)
+            url = blob_client.url
+    
+    return {
+        "SUCCESS": True,
+        "URL": url
+    }
