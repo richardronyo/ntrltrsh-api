@@ -824,7 +824,8 @@ def book_a_session(user_id, session_info):
     db.session.commit()
 
     return {
-        "SUCCESS": True
+        "SUCCESS": True,
+        "MSG": f"Session on {date} from {start_time} - {end_time} added"
     }
     
 
