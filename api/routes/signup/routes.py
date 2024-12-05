@@ -6,6 +6,7 @@ from api.lib.signup.signup_funcs import add_login_information, add_personal_info
 
 from api.lib.Security.AESPython import update_password_field
 
+from api.lib.email.email_funcs import send_message
 
 @signup_route.route('/page1', methods=["POST"])
 def new_user():
@@ -111,6 +112,7 @@ def complete():
     """
     user_id = current_user.id
     completion_info = request.get_json()
+    send_message(current_user.email, "Sign Up", "Thank you for signings up for StudyCycle!")
 
     return jsonify(onboarding_complete(completion_info, user_id))
 
@@ -142,6 +144,7 @@ def student():
     """
     user_id = current_user.id
     student_data = request.get_json()
+    send_message(current_user.email, "Sign Up", "Thank you for signings up for StudyCycle!")
 
     return jsonify(student_signup(user_id, student_data)), 200
 
