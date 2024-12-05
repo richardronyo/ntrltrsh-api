@@ -708,13 +708,25 @@ def map_string_to_subject(string_subject):
 
     return larger_topic, subject_enum
 
+def add_minutes_to_datetime(start_time_str, duration_hours):
+    # Parse the start time string into a datetime object
+    start_time = datetime.strptime(start_time_str, "%H:%M")
+    
+    # Convert the duration from hours to minutes
+    duration_minutes = duration_hours * 60
+    
+    # Add the duration to the start time
+    end_time = start_time + timedelta(minutes=duration_minutes)
+    
+    # Return the end time in HH:mm format
+    return end_time.strftime("%H:%M")
 
 def book_a_session(user_id, session_info):
     """
     This method books a tutoring session manually
     {
         "START_TIME": <str>,
-        "END_TIME": <str>,
+        "DURATION": <str>,
         "SUBJECT": <str>,
         "LOCATION": <str>,
         "DATE": <str>
@@ -723,12 +735,14 @@ def book_a_session(user_id, session_info):
 
     student_id = user_id
     start_time = session_info["START_TIME"]
-    end_time = session_info["END_TIME"]
+    duration = session_info["DURATION"]
+
     string_subject = session_info["SUBJECT"]
     topic, subject = map_string_to_subject(session_info["SUBJECT"].upper())
     location = session_info["LOCATION"]
     date = session_info["DATE"]
     date_obj = datetime.strptime(date, "%Y-%m-%d")
+    end_time = add_minutes_to_datetime(start_time, float(duration))
 
     unavailable = {
         "SUCCESS": False,
