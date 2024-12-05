@@ -1,8 +1,11 @@
 from api.routes.schedule import schedule_route
 from flask import request, jsonify
 from flask_jwt_extended import jwt_required, current_user
-from api.lib.schedule.schedule_funcs import update_availability, matchmaking_algorithm, cancel_session, check_conflict, check_students, get_sessions as gs, get_session_users, book_a_session
+from api.lib.schedule.schedule_funcs import update_availability, matchmaking_algorithm, cancel_session, check_conflict, check_students, get_sessions as gs, get_session_users, book_a_session, add_minutes_to_datetime
+from api.lib.email.email_funcs import send_message
+from api import models, db, mail
 
+from datetime import datetime
 @schedule_route.route('/update', methods=["POST"])
 @jwt_required()
 def update():
@@ -53,6 +56,31 @@ def cancel():
 
     user_id = current_user.id
     cancel_data = request.get_json()
+    date_obj = datetime.strptime(cancel_data["DATE"], "%Y-%m-%d")
+
+    #Sending an email that tells the users that their session has been cancelled
+    initiator_email = current_user.email
+    initiator_account_type = current_user.account_type
+
+    if initiator_account_type == models.AccountType.STUDENT:
+        session = models.Schedule.query.filter(models.Schedule.student_id == user_id, models.Schedule.date == date_obj).one_or_none()
+        tutor_id = session.tutor_id
+        tutor = models.LoginInformation.query.filter(models.LoginInformation.id == tutor_id).one_or_none()
+        tutor_email = tutor.email
+
+        msg1 = send_message(tutor_email, f"Cancelled Session", f"Your session on {cancel_data["DATE"]} has been cancelled")
+        msg2 = send_message(initiator_email, f"Cancelled Session", f"Your session on {cancel_data["DATE"]} has been cancelled")
+    elif initiator_account_type == models.AccountType.TUTOR:
+        session = models.Schedule.query.filter(models.Schedule.tutor_id == user_id, models.Schedule.date == date_obj).one_or_none()
+        student_id = session.student_id
+        student = models.LoginInformation.query.filter(models.LoginInformation.id == student_id).one_or_none()
+        student_email = student.email
+
+        msg1 = send_message(student_email, f"Cancelled Session", f"Your session on {cancel_data["DATE"]} has been cancelled")
+        msg2 = send_message(initiator_email, f"Cancelled Session", f"Your session on {cancel_data["DATE"]} has been cancelled")
+
+    mail.send(msg1)
+    mail.send(msg2)
 
     return jsonify(cancel_session(user_id, cancel_data)), 200
 
@@ -84,7 +112,7 @@ def book():
     This method books a tutoring session manually
     {
         "START_TIME": <str>,
-        "END_TIME": <str>,
+        "DURATION": <str>,
         "SUBJECT": <str>,
         "LOCATION": <str>,
         "DATE": <str>
@@ -94,4 +122,16 @@ def book():
     session_info = request.get_json()
     user_id = current_user.id
 
-    return jsonify(book_a_session(user_id, session_info)), 200
+    response, tutor_id = book_a_session(user_id, session_info)
+
+    if tutor_id != "No tutor ID":
+        tutor = models.LoginInformation.query.filter(models.LoginInformation.id == tutor_id).one_or_none()
+        tutor_email = tutor.email
+        student_email = current_user.email
+
+        msg1 = send_message(tutor_email, f"New Session", f"You have a new session on {session_info["DATE"]} from {session_info["START_TIME"]} - {add_minutes_to_datetime(session_info["START_TIME"], float(session_info["DURATION"]))}")
+        msg2 = send_message(student_email, f"New Session", f"You have a new session on {session_info["DATE"]} from {session_info["START_TIME"]} - {add_minutes_to_datetime(session_info["START_TIME"], float(session_info["DURATION"]))}")
+        mail.send(msg1)
+        mail.send(msg2)
+    
+    return jsonify(response), 200

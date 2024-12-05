@@ -481,30 +481,10 @@ def cancel_session(user_id, cancel_data):
     account_type = login.account_type
 
     if account_type == models.AccountType.STUDENT: #This means a student is cancelling. We must find the tutor_id to get the correct session
-        
         tutor_session = models.Schedule.query.filter(models.Schedule.student_id == user_id, models.Schedule.date == date).one_or_none()
-        tutor_id = tutor_session.tutor_id
-
-        shifts = models.Shifts.query.filter(models.Shifts.tutor_id == tutor_id).all()
-        for shift_period in shifts:
-            start_day = datetime.strptime(shift_period.start_day, "%Y-%m-%d")
-            end_day = datetime.strptime(shift_period.end_day, "%Y-%m-%d")
-
-            if start_day <= date and end_day >= date:
-                shift = shift_period
-                break
-
     else:
         tutor_session = models.Schedule.query.filter(models.Schedule.tutor_id == user_id, models.Schedule.date == date).one_or_none()
-        shifts = models.Shifts.query.filter(models.Shifts.tutor_id == user_id).all()
-        for shift_period in shifts:
-            start_day = datetime.strptime(shift_period.start_day, "%Y-%m-%d")
-            end_day = datetime.strptime(shift_period.end_day, "%Y-%m-%d")
 
-            if start_day <= date and end_day >= date:
-                shift = shift_period
-                break
-    shift.num_of_shifts -= 1
     db.session.delete(tutor_session)
     db.session.commit()
 
@@ -829,7 +809,7 @@ def book_a_session(user_id, session_info):
 
     if available_tutors == []:
         print("Weekday does not work")
-        return unavailable
+        return unavailable, "No tutor ID"
 
     tutor = random.choice(available_tutors)
 
@@ -840,7 +820,7 @@ def book_a_session(user_id, session_info):
     return {
         "SUCCESS": True,
         "MSG": f"Session on {date} from {start_time} - {end_time} added"
-    }
+    }, tutor.user_id
     
 
 

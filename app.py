@@ -23,14 +23,6 @@ app.register_blueprint(email_route, url_prefix="/api/email")
 app.config['JWT_SECRET_KEY'] = "NTRLTRSH"
 app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(days=1)
 
-# Configuration for Flask-Mail
-app.config['MAIL_SERVER'] = 'smtp.gmail.com'
-app.config['MAIL_PORT'] = 587
-app.config['MAIL_USE_TLS'] = True 
-app.config['MAIL_USERNAME'] = 'naturaltrashnoreply@gmail.com' 
-app.config['MAIL_PASSWORD'] = 'aitv wpmt olan vinl' #app password on google account
-app.config['MAIL_DEFAULT_SENDER'] = 'naturaltrashnoreply@gmail.com' 
-mail = Mail(app)
 
 
 if __name__ == '__main__':

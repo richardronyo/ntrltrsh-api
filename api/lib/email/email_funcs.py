@@ -52,3 +52,22 @@ def find_email(email):
     #if both does not exist, return false or similar (String type)
     else:
         return "False"
+    
+
+def send_message(recipient, subject, message):
+    """
+    This function sends an email from the standard NTRLTRSH email to a recipient's email address
+    """
+
+    msg = Message()
+    msg.subject = subject
+    msg.recipients = [recipient]
+    msg.sender = ("Natural Trash No Reply", "ntrltrsh@gmail.com")
+    msg.html = f""""
+    <html>
+    <body>
+        <p>Hello, </p>
+        <p>{message}</p>
+        <p>Thank you.</p>
+    """
+    return msg    
