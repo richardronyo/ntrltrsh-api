@@ -1,6 +1,6 @@
 from api import models, db
 from sqlalchemy.sql import text
-
+from datetime import datetime
 from api.lib.Security.AESPython import update_password_field
 
 
@@ -117,19 +117,35 @@ def get_all_students():
     }
 
 def get_all_tutors():
-    all_tutors = models.LoginInformation.query.filter(models.LoginInformation.account_type == models.AccountType.TUTOR).all()
+    all_tutors = models.LoginInformation.query.filter(models.LoginInformation.account_type == models.AccountType.TUTOR and models.LoginInformation.registration_complete == True).all()
 
     tutor_info = []
     for tutor in all_tutors:
         tutor_personal = models.PersonalInformation.query.filter(models.PersonalInformation.user_id == tutor.id).one_or_none()
+        tutor_qualities = models.TutorInformation.query.filter(models.TutorInformation.user_id == tutor.id).one_or_none()
+        tutor_availability = models.Availability.query.filter(models.Availability.user_id == tutor.id).one_or_none()
 
-        if tutor_personal:
+        if tutor_personal and tutor_qualities and tutor_availability:
             tutor_info.append(
                 {
                     "EMAIL": tutor.email,
                     "USERNAME": tutor.username,
                     "FIRST_NAME": tutor_personal.first_name,
-                    "LAST_NAME": tutor_personal.last_name
+                    "LAST_NAME": tutor_personal.last_name,
+                    "MATH": [subsection.value for subsection in tutor_qualities.math],
+                    "SCIENCE": [subsection.value for subsection in tutor_qualities.science],
+                    "LANGUAGE ARTS": [subsection.value for subsection in tutor_qualities.english],
+                    "LANGUAGES": [subsection.value for subsection in tutor_qualities.language],
+                    "HISTORY": [subsection.value for subsection in tutor_qualities.history],
+                    "MONDAY": tutor_availability.mon_avail,
+                    "TUESDAY": tutor_availability.tue_avail,
+                    "WEDNESDAY": tutor_availability.wed_avail,
+                    "THURSDAY": tutor_availability.thurs_avail,
+                    "FRIDAY": tutor_availability.fri_avail,
+                    "SATURDAY": tutor_availability.sat_avail,
+                    "SUNDAY": tutor_availability.sun_avail,
+                    "VACATION": [date for date in tutor_availability.vacation_days if datetime.strptime(date, "%Y-%m-%d") >= datetime.now() ]
+
                 }
             )
     
