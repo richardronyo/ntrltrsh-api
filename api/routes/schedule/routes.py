@@ -1,7 +1,7 @@
 from api.routes.schedule import schedule_route
 from flask import request, jsonify
 from flask_jwt_extended import jwt_required, current_user
-from api.lib.schedule.schedule_funcs import update_availability, matchmaking_algorithm, cancel_session, check_conflict, check_students, get_sessions as gs, get_session_users
+from api.lib.schedule.schedule_funcs import update_availability, matchmaking_algorithm, cancel_session, check_conflict, check_students, get_sessions as gs, get_session_users, book_a_session
 
 @schedule_route.route('/update', methods=["POST"])
 @jwt_required()
@@ -76,3 +76,22 @@ def get_session_matches():
 
     user_id = current_user.id
     return jsonify(get_session_users(user_id)), 200
+
+@schedule_route.route('/book', methods = ["POST"])
+@jwt_required()
+def book():
+    """
+    This method books a tutoring session manually
+    {
+        "START_TIME": <str>,
+        "END_TIME": <str>,
+        "SUBJECT": <str>,
+        "LOCATION": <str>,
+        "DATE": <str>
+    }
+    """
+
+    session_info = request.get_json()
+    user_id = current_user.id
+
+    return jsonify(book_a_session(user_id, session_info)), 200

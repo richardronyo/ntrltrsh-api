@@ -466,10 +466,6 @@ def check_students():
 
     return {"SUCCESS": True}
 
-
-
-
-
 def cancel_session(user_id, cancel_data):
     """
     This helper function will cancel a tutoring session
@@ -645,3 +641,201 @@ def get_session_users(user_id):
             })
 
     return session_users
+
+
+def map_string_to_subject(string_subject):
+    subject_map = {
+        "ALGEBRA": ("MATH", models.Math.ALGEBRA),
+        "CALCULUS": ("MATH", models.Math.CALCULUS),
+        "GEOMETRY": ("MATH", models.Math.GEOMETRY),
+        "TRIGONOMETRY": ("MATH", models.Math.TRIGONOMETRY),
+        "STATISTICS": ("MATH", models.Math.STATISTICS),
+        "PROBABILITY": ("MATH", models.Math.PROBABILITY),
+        "DIFFERENTIAL EQUATIONS": ("MATH", models.Math.DIFFERENTIAL_EQUATIONS),
+        "LINEAR ALGEBRA": ("MATH", models.Math.LINEAR_ALGEBRA),
+        "GENERAL MATH": ("MATH", models.Math.GENERAL_MATH),
+
+        "PHYSICS": ("SCIENCE", models.Science.PHYSICS),
+        "CHEMISTRY": ("SCIENCE", models.Science.CHEMISTRY),
+        "BIOLOGY": ("SCIENCE", models.Science.BIOLOGY),
+        "EARTH SCIENCE": ("SCIENCE", models.Science.EARTH_SCIENCE),
+        "ASTRONOMY": ("SCIENCE", models.Science.ASTRONOMY),
+        "ENVIRONMENTAL SCIENCE": ("SCIENCE", models.Science.ENVIRONMENTAL_SCIENCE),
+        "BOTANY": ("SCIENCE", models.Science.BOTANY),
+        "ZOOLOGY": ("SCIENCE", models.Science.ZOOLOGY),
+        "GENERAL SCIENCE": ("SCIENCE", models.Science.GENERAL_SCIENCE),
+
+        "FRENCH": ("LANGUAGE", models.Language.FRENCH),
+        "SPANISH": ("LANGUAGE", models.Language.SPANISH),
+        "GERMAN": ("LANGUAGE", models.Language.GERMAN),
+        "CHINESE": ("LANGUAGE", models.Language.CHINESE),
+        "JAPANESE": ("LANGUAGE", models.Language.JAPANESE),
+        "RUSSIAN": ("LANGUAGE", models.Language.RUSSIAN),
+        "ITALIAN": ("LANGUAGE", models.Language.ITALIAN),
+        "ARABIC": ("LANGUAGE", models.Language.ARABIC),
+
+        "LITERATURE": ("ENGLISH", models.English.LITERATURE),
+        "GRAMMAR": ("ENGLISH", models.English.GRAMMAR),
+        "WRITING": ("ENGLISH", models.English.WRITING),
+        "POETRY": ("ENGLISH", models.English.POETRY),
+        "DRAMA": ("ENGLISH", models.English.DRAMA),
+        "ESSAY WRITING": ("ENGLISH", models.English.ESSAY_WRITING),
+        "CRITICAL ANALYSIS": ("ENGLISH", models.English.CRITICAL_ANALYSIS),
+        "CREATIVE WRITING": ("ENGLISH", models.English.CREATIVE_WRITING),
+        "GENERAL ENGLISH": ("ENGLISH", models.English.GENERAL_ENGLISH),
+
+        "ANCIENT HISTORY": ("HISTORY", models.History.ANCIENT),
+        "MEDIEVAL HISTORY": ("HISTORY", models.History.MEDIEVAL),
+        "MODERN HISTORY": ("HISTORY", models.History.MODERN),
+        "WORLD WAR I": ("HISTORY", models.History.WORLD_WAR_I),
+        "WORLD WAR II": ("HISTORY", models.History.WORLD_WAR_II),
+        "AMERICAN REVOLUTION": ("HISTORY", models.History.AMERICAN_REVOLUTION),
+        "INDUSTRIAL REVOLUTION": ("HISTORY", models.History.INDUSTRIAL_REVOLUTION),
+        "COLD WAR": ("HISTORY", models.History.COLD_WAR),
+        "SOCIAL STUDIES": ("HISTORY", models.History.SOCIAL_STUDIES)
+    }
+
+    # Convert input string to uppercase
+    string_subject_upper = string_subject.upper()
+
+    # Look up subject and larger topic
+    subject_info = subject_map.get(string_subject_upper)
+
+    if subject_info is None:
+        raise ValueError(f"Invalid subject string: {string_subject}")
+
+    larger_topic, subject_enum = subject_info
+
+    return larger_topic, subject_enum
+
+
+def book_a_session(user_id, session_info):
+    """
+    This method books a tutoring session manually
+    {
+        "START_TIME": <str>,
+        "END_TIME": <str>,
+        "SUBJECT": <str>,
+        "LOCATION": <str>,
+        "DATE": <str>
+    }
+    """
+
+    student_id = user_id
+    start_time = session_info["START_TIME"]
+    end_time = session_info["END_TIME"]
+    string_subject = session_info["SUBJECT"]
+    topic, subject = map_string_to_subject(session_info["SUBJECT"].upper())
+    location = session_info["LOCATION"]
+    date = session_info["DATE"]
+    date_obj = datetime.strptime(date, "%Y-%m-%d")
+
+    unavailable = {
+        "SUCCESS": False,
+        "MSG": "No available tutors"
+    }
+
+    print(subject)
+
+    if topic == "MATH": 
+        possible_tutors = models.TutorInformation.query.filter(models.TutorInformation.math.any(subject))
+    elif topic == "SCIENCE":
+        possible_tutors = models.TutorInformation.query.filter(models.TutorInformation.science != {}).all()
+    elif topic == "HISTORY":
+        possible_tutors = models.TutorInformation.query.filter(models.TutorInformation.history != {}).all()
+    elif topic ==  "ENGLISH":
+        possible_tutors = models.TutorInformation.query.filter(models.TutorInformation.english != {}).all()
+    elif topic == "LANGUAGE":
+        possible_tutors = models.TutorInformation.query.filter(models.TutorInformation.language != {}).all()
+
+    
+    if possible_tutors == []:
+        print("No possible tutors")
+        return unavailable
+    
+    available_tutors = []
+    for tutor in possible_tutors:
+        tutor_availability = models.Availability.query.filter(models.Availability.user_id == tutor.user_id).one_or_none()
+        
+        #Checking if the tutor even uploaded thier availability
+        if tutor_availability is None:
+            continue
+        vacation = tutor_availability.vacation_days
+
+        #Checking if the date chosen for a session is in the tutors vacation days
+        if date in vacation:
+            continue
+
+        #Checking if the tutor already has a session on that day
+        date_obj = datetime.strptime(date, "%Y-%m-%d")
+        weekday = date_obj.strftime("%A").upper()
+        
+        tutor_sessions = models.Schedule.query.filter(models.Schedule.tutor_id == tutor.user_id).all()
+        for session in tutor_sessions:
+            if session.date == date_obj:
+                print("Conflicting dates", date)
+                return unavailable
+
+        #Checking if the date chosen for a session is in the tutors availability
+        if weekday == "MONDAY":
+            time_slots = tutor_availability.mon_avail
+        elif weekday == "TUESDAY":
+            time_slots = tutor_availability.tue_avail
+        elif weekday == "WEDNESDAY":
+            time_slots = tutor_availability.wed_avail
+        elif weekday == "THURSDAY":
+            time_slots = tutor_availability.thurs_avail
+        elif weekday == "FRIDAY":
+            time_slots = tutor_availability.fri_avail
+        elif weekday == "SATURDAY":
+            time_slots = tutor_availability.sat_avail
+        elif weekday == "SUNDAY":
+            time_slots = tutor_availability.sun_avail
+        
+        if time_slots == []:
+            continue
+
+
+        tutor_start = time_slots[0]
+        tutor_end = time_slots[1]
+
+        #Checking if the start and end times align
+        time_format = "%H:%M"
+        tutor_start_obj = datetime.strptime(tutor_start, time_format)
+        tutor_end_obj = datetime.strptime(tutor_end, time_format)
+
+        student_start_obj = datetime.strptime(start_time, time_format)
+        student_end_obj = datetime.strptime(end_time, time_format)
+
+        #Creating a list of all possible tutors
+        if tutor_start_obj > student_start_obj or tutor_end_obj < student_end_obj:
+            continue
+        else:
+            available_tutors.append(tutor)
+
+    if available_tutors == []:
+        print("Weekday does not work")
+        return unavailable
+
+    tutor = random.choice(available_tutors)
+
+    booking = models.Schedule(student_id, tutor.user_id, date_obj, start_time, end_time, string_subject, location)
+    db.session.add(booking)
+    db.session.commit()
+
+    return {
+        "SUCCESS": True
+    }
+    
+
+
+
+
+
+
+
+
+
+
+
+
