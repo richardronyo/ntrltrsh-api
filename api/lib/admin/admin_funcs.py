@@ -42,14 +42,23 @@ def delete_user(user_id):
         specific_account = db.session.query.filter(models.TutorInformation.user_id == user_id).one_or_none()
 
     availability = db.session.query.filter(models.Availability.user_id == user_id).one_or_none()
+    schedule = db.session.query.filter(models.Schedule.user_id == user_id).all()
+    bug = db.session.query.filter(models.Bugs.reporter_id == user_id).one_or_none()
+    shifts = db.session.query.filter(models.Shifts.tutor_id == user_id).one_or_none()
+    messages = db.session.query.filter(models.Messaging.sender_id == user_id or models.Messaging.receiver_id == user_id).all()
 
     db.session.execute(text('SET CONSTRAINTS ALL IMMEDIATE'))
 
     db.session.delete(availability)
+    db.session.delete(schedule)
+    db.session.delete(bug)
+    db.session.delete(shifts)
+    db.session.delete(messages)
     db.session.delete(specific_account)
     db.session.delete(personal)
-    db.session.delete(login)
 
+    db.session.delete(login)
+\
 def change_account_type(user_id):
     account = models.LoginInformation.query.filter(models.LoginInformation.id == user_id).one_or_none()
 
