@@ -41,7 +41,7 @@ def match():
     
     return jsonify(check_students()), 200
 
-@schedule_route.route('/cancel', methods = ["PUTLETE"])
+@schedule_route.route('/cancel', methods = ["PUT"])
 @jwt_required()
 def cancel():
     """
