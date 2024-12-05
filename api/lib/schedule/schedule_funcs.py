@@ -440,7 +440,10 @@ def get_sessions(user_id):
     session_info = []
 
     for session in sessions:
+        if session.date < datetime.now():
+                continue
         if account_type == models.AccountType.STUDENT:
+
             tutor_login_info = models.LoginInformation.query.filter(models.LoginInformation.id == session.tutor_id).one_or_none()
 
             email = tutor_login_info.email
@@ -448,6 +451,7 @@ def get_sessions(user_id):
             start_time = session.start_time
             end_time = session.end_time
             location = session.location
+
 
             session_info.append({
                 "EMAIL": email,
