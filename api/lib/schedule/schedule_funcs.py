@@ -475,22 +475,19 @@ def cancel_session(user_id, cancel_data):
     This helper function will cancel a tutoring session
     {
         "DATE": "YYYY-MM-DD",
-        "EMAIL": str 
     }
     """
 
     date = datetime.strptime(cancel_data["DATE"], "%Y-%m-%d")
-    email = cancel_data["EMAIL"]
 
     login = models.LoginInformation.query.filter(models.LoginInformation.id == user_id).one_or_none()
 
     account_type = login.account_type
 
     if account_type == models.AccountType.STUDENT: #This means a student is cancelling. We must find the tutor_id to get the correct session
-        tutor_account = models.LoginInformation.query.filter(models.LoginInformation.email == email).one_or_none()
-        tutor_id = tutor_account.id
         
-        tutor_session = models.Schedule.query.filter(models.Schedule.tutor_id == tutor_id, models.Schedule.student_id == user_id, models.Schedule.date == date).one_or_none()
+        tutor_session = models.Schedule.query.filter(models.Schedule.student_id == user_id, models.Schedule.date == date).one_or_none()
+        tutor_id = tutor_session.tutor_id
 
         shifts = models.Shifts.query.filter(models.Shifts.tutor_id == tutor_id).all()
         for shift_period in shifts:
@@ -502,10 +499,7 @@ def cancel_session(user_id, cancel_data):
                 break
 
     else:
-        student_account = models.LoginInformation.query.filter(models.LoginInformation.email == email).one_or_none()
-        student_id = student_account.id
-
-        tutor_session = models.Schedule.query.filter(models.Schedule.tutor_id == user_id, models.Schedule.student_id == student_id, models.Schedule.date == date).one_or_none()
+        tutor_session = models.Schedule.query.filter(models.Schedule.tutor_id == user_id, models.Schedule.date == date).one_or_none()
         shifts = models.Shifts.query.filter(models.Shifts.tutor_id == user_id).all()
         for shift_period in shifts:
             start_day = datetime.strptime(shift_period.start_day, "%Y-%m-%d")

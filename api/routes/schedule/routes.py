@@ -41,14 +41,13 @@ def match():
     
     return jsonify(check_students()), 200
 
-@schedule_route.route('/cancel', methods = ["DELETE"])
+@schedule_route.route('/cancel', methods = ["PUTLETE"])
 @jwt_required()
 def cancel():
     """
     This route will cancel a tutoring session
     {
         "DATE": "YYYY-MM-DD",
-        "EMAIL": str 
     }
     """
 
