@@ -1,5 +1,5 @@
 from api.routes.signup import signup_route
-
+from api import mail
 from flask import request, jsonify
 from flask_jwt_extended import jwt_required, current_user
 from api.lib.signup.signup_funcs import add_login_information, add_personal_information, generate_token, add_subjects, add_education_info, add_profile_info, onboarding_complete, upload_files, student_signup, upload_profile_pic
@@ -112,8 +112,8 @@ def complete():
     """
     user_id = current_user.id
     completion_info = request.get_json()
-    send_message(current_user.email, "Sign Up", "Thank you for signings up for StudyCycle!")
-
+    msg = send_message(current_user.email, "Sign Up", "Thank you for signings up for StudyCycle!")
+    mail.send(msg)
     return jsonify(onboarding_complete(completion_info, user_id))
 
 @signup_route.route('/upload', methods = ["POST"])
@@ -144,8 +144,8 @@ def student():
     """
     user_id = current_user.id
     student_data = request.get_json()
-    send_message(current_user.email, "Sign Up", "Thank you for signings up for StudyCycle!")
-
+    msg = send_message(current_user.email, "Sign Up", "Thank you for signings up for StudyCycle!")
+    mail.send(msg)
     return jsonify(student_signup(user_id, student_data)), 200
 
     
