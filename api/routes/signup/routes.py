@@ -1,5 +1,5 @@
 from api.routes.signup import signup_route
-from api import mail
+from api import mail    
 from flask import request, jsonify
 from flask_jwt_extended import jwt_required, current_user
 from api.lib.signup.signup_funcs import add_login_information, add_personal_information, generate_token, add_subjects, add_education_info, add_profile_info, onboarding_complete, upload_files, student_signup, upload_profile_pic
