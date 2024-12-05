@@ -11,6 +11,102 @@ def update_availability(availability_info, user_id, account_type):
 
     return{"SUCCESS": True}
 
+def map_subject_to_string(subject):
+    if subject == models.Math.ALGEBRA:
+        string_subject = "Algebra"
+    elif subject == models.Math.CALCULUS:
+        string_subject = "Calculus"
+    elif subject == models.Math.GEOMETRY:
+        string_subject = "Geometry"
+    elif subject == models.Math.TRIGONOMETRY:
+        string_subject = "Trigonometry"
+    elif subject == models.Math.STATISTICS:
+        string_subject = "Statistics"
+    elif subject == models.Math.PROBABILITY:
+        string_subject = "Probability"
+    elif subject == models.Math.DIFFERENTIAL_EQUATIONS:
+        string_subject = "Differential Equations"
+    elif subject == models.Math.LINEAR_ALGEBRA:
+        string_subject = "Linear Algebra"
+    elif subject == models.Math.GENERAL_MATH:
+        string_subject = "General Math"
+        
+    elif subject == models.Science.PHYSICS:
+        string_subject = "Physics"
+    elif subject == models.Science.CHEMISTRY:
+        string_subject = "Chemistry"
+    elif subject == models.Science.BIOLOGY:
+        string_subject = "Biology"
+    elif subject == models.Science.EARTH_SCIENCE:
+        string_subject = "Earth Science"
+    elif subject == models.Science.ASTRONOMY:
+        string_subject = "Astronomy"
+    elif subject == models.Science.ENVIRONMENTAL_SCIENCE:
+        string_subject = "Environmental Science"
+    elif subject == models.Science.BOTANY:
+        string_subject = "Botany"
+    elif subject == models.Science.ZOOLOGY:
+        string_subject = "Zoology"
+    elif subject == models.Science.GENERAL_SCIENCE:
+        string_subject = "General Science"
+
+    elif subject == models.Language.FRENCH:
+        string_subject = "French"
+    elif subject == models.Language.SPANISH:
+        string_subject = "Spanish"
+    elif subject == models.Language.GERMAN:
+        string_subject = "German"
+    elif subject == models.Language.CHINESE:
+        string_subject = "Chinese"
+    elif subject == models.Language.JAPANESE:
+        string_subject = "Japanese"
+    elif subject == models.Language.RUSSIAN:
+        string_subject = "Russian"
+    elif subject == models.Language.ITALIAN:
+        string_subject = "Italian"
+    elif subject == models.Language.ARABIC:
+        string_subject = "Arabic"
+    
+    elif subject == models.English.LITERATURE:
+        string_subject = "Literature"
+    elif subject == models.English.GRAMMAR:
+        string_subject = "Grammar"
+    elif subject == models.English.WRITING:
+        string_subject = "Writing"
+    elif subject == models.English.POETRY:
+        string_subject = "Poetry"
+    elif subject == models.English.DRAMA:
+        string_subject = "Drama"
+    elif subject == models.English.ESSAY_WRITING:
+        string_subject = "Essay Writing"
+    elif subject == models.English.CRITICAL_ANALYSIS:
+        string_subject = "Critical Analysis"
+    elif subject == models.English.CREATIVE_WRITING:
+        string_subject = "Creative Writing"
+    elif subject == models.English.GENERAL_ENGLISH:
+        string_subject = "General English"
+        
+    elif subject == models.History.ANCIENT:
+        string_subject = "Ancient History"
+    elif subject == models.History.MEDIEVAL:
+        string_subject = "Medieval History"
+    elif subject == models.History.MODERN:
+        string_subject = "Modern History"
+    elif subject == models.History.WORLD_WAR_I:
+        string_subject = "World War I"
+    elif subject == models.History.WORLD_WAR_II:
+        string_subject = "World War II"
+    elif subject == models.History.AMERICAN_REVOLUTION:
+        string_subject = "American Revolution"
+    elif subject == models.History.INDUSTRIAL_REVOLUTION:
+        string_subject = "Industrial Revolution"
+    elif subject == models.History.COLD_WAR:
+        string_subject = "Cold War"
+    elif subject == models.History.SOCIAL_STUDIES:
+        string_subject = "Social Studies"
+    
+    return string_subject
+
 
 # Function to get a random 2-hour time slot
 def get_random_time_slot(window_start_str, window_end_str):
@@ -77,6 +173,7 @@ def matchmaking_algorithm():
         subjects = tutor_subjects[i]
         vacation = vacations[i]
 
+        
         #Picking a random day they are available to schedule them
         day_of_session_1, times_1 = random.choice(availability)  # First week
         while times_1 == []:
@@ -148,8 +245,9 @@ def matchmaking_algorithm():
         possible_dates_1 = [day for day in scheduling_period[0] if day.split(", ")[0].upper() == day_of_session_1 and (day.split(", ")[1] not in vacation or day.split(", ")[1] not in existing_sessions)]
         possible_dates_2 = [day for day in scheduling_period[1] if day.split(", ")[0].upper() == day_of_session_2 and (day.split(", ")[1] not in vacation or day.split(", ")[1] not in existing_sessions)]
 
-        print(possible_dates_1)
-        print(possible_dates_2)
+        print("Existing Sessions: ", existing_sessions)
+        print("Possible Days 1: ", possible_dates_1)
+        print("Possible Days 2: ", possible_dates_2)
 
         session_date_1 = random.choice(possible_dates_1)
         session_date_2 = random.choice(possible_dates_2)
@@ -160,8 +258,8 @@ def matchmaking_algorithm():
         day_2 = session_date_2.split(", ")[0]
         date_2 = session_date_2.split(", ")[1]
 
-        tutoring_session_1 = models.Schedule(student_id_1, tutor.user_id, datetime.strptime(date_1, "%Y-%m-%d"), start_time_1, end_time_1)
-        tutoring_session_2 = models.Schedule(student_id_2, tutor.user_id, datetime.strptime(date_2, "%Y-%m-%d"), start_time_2, end_time_2)
+        tutoring_session_1 = models.Schedule(student_id_1, tutor.user_id, datetime.strptime(date_1, "%Y-%m-%d"), start_time_1, end_time_1, map_subject_to_string(subject_1))
+        tutoring_session_2 = models.Schedule(student_id_2, tutor.user_id, datetime.strptime(date_2, "%Y-%m-%d"), start_time_2, end_time_2, map_subject_to_string(subject_2))
 
         shifts = models.Shifts(tutor.user_id, scheduling_period[0][0].split(", ")[1], scheduling_period[1][-1].split(", ")[1])
         shifts.add_shift()
@@ -305,7 +403,7 @@ def check_students():
         availability_list = [("MONDAY", availability.mon_avail), ("TUESDAY", availability.tue_avail), ("WEDNESDAY", availability.wed_avail), ("THURSDAY", availability.thurs_avail), ("FRIDAY", availability.fri_avail), ("SATURDAY", availability.sat_avail), ("SUNDAY", availability.sun_avail)]
         vacation = availability.vacation_days
 
-        available_days= [available_day[0] for available_day in availability_list]
+        available_days= [available_day[0] for available_day in availability_list if available_day[1] != []]
         available_session_equal = True
 
         for day in available_days:
@@ -313,6 +411,8 @@ def check_students():
                 available_session_equal = False
 
         if available_session_equal:
+            print("\tAvailable Days: ", available_days)
+            print("\tSession Days: ", session_days)
             continue
 
         new_session_day = random.choice(availability_list)
@@ -324,6 +424,15 @@ def check_students():
         potential_days = [date for date in scheduling_period if date.split(", ")[0].upper() == new_session_day[0]]
         print("Potential Session Days: ", potential_days)
         
+        days_to_choose_from = [availability[0] for availability in availability_list if availability[1] != []]
+        existing_session_weekdays = []
+        [existing_session_weekdays.append(weekday) for weekday in session_days if weekday not in existing_session_weekdays]
+
+        print("\tWeekdays we are choosing from: ", days_to_choose_from)
+        print("\tWeekdays with a session already: ", existing_session_weekdays)
+        if days_to_choose_from == existing_session_weekdays:
+            continue
+
         if potential_days[0] in vacation and potential_days[1] in vacation:
             session_days.append(new_session_day[0])
 
@@ -340,7 +449,7 @@ def check_students():
 
         while date.split(", ")[1] in vacation:
             date = random.choice(potential_days)
-        session = models.Schedule(student.user_id, tutor_id, datetime.strptime(date.split(", ")[1], "%Y-%m-%d"), start_time, end_time)
+        session = models.Schedule(student.user_id, tutor_id, datetime.strptime(date.split(", ")[1], "%Y-%m-%d"), start_time, end_time, map_subject_to_string(subject))
         shift = models.Shifts.query.filter(models.Shifts.tutor_id == tutor_id, models.Shifts.start_day == scheduling_period[0].split(", ")[1]).one_or_none()
 
         if shift is None:
@@ -445,12 +554,16 @@ def get_sessions(user_id):
         if account_type == models.AccountType.STUDENT:
 
             tutor_login_info = models.LoginInformation.query.filter(models.LoginInformation.id == session.tutor_id).one_or_none()
+            tutor_personal_info = models.PersonalInformation.query.filter(models.PersonalInformation.user_id == session.tutor_id).one_or_none()
 
             email = tutor_login_info.email
             date = session.date.strftime("%Y-%m-%d")
             start_time = session.start_time
             end_time = session.end_time
             location = session.location
+            subject = session.subject
+            first_name = tutor_personal_info.first_name
+            last_name = tutor_personal_info.last_name
 
 
             session_info.append({
@@ -458,23 +571,32 @@ def get_sessions(user_id):
                 "DATE": date,
                 "START_TIME": start_time,
                 "END_TIME": end_time,
-                "LOCATION": location
+                "LOCATION": location,
+                "FULL_NAME": f"{first_name} {last_name}",
+                "SUBJECT": subject
             })
         elif account_type == models.AccountType.TUTOR:
             student_login_info = models.LoginInformation.query.filter(models.LoginInformation.id == session.student_id).one_or_none()
+            student_personal_info = models.PersonalInformation.query.filter(models.PersonalInformation.user_id == session.student_id).one_or_none()
 
             email = student_login_info.email
             date = session.date.strftime("%Y-%m-%d")
             start_time = session.start_time
             end_time = session.end_time
             location = session.location
+            subject = session.subject
+            first_name = student_personal_info.first_name
+            last_name = student_personal_info.last_name
+
 
             session_info.append({
                 "EMAIL": email,
                 "DATE": date,
                 "START_TIME": start_time,
                 "END_TIME": end_time,
-                "LOCATION": location
+                "LOCATION": location,
+                "FULL_NAME": f"{first_name} {last_name}",
+                "SUBJECT": subject
             })
 
     return session_info
