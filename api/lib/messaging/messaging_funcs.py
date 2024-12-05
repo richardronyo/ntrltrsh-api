@@ -124,59 +124,56 @@ def get_conversation(user_id, recipient_username):
 def fetch_contacts(user_id):
     """
     Retrieve all users who have had a conversation with the given user,
-    Also include users whom the current user is matched with in the current session period.
-    Prioritize matched users, and sort all users by the most recent message timestamp.
-
-    So, it should look like this
-    [matching period users sorted by most recent, including those that haven't been messaged]
-    [...]
-    [...]
-    [historical users sorted by most recent]
-    [...]
-    [...]
+    including users the current user is matched with in the current session period.
+    Deduplicate users and sort matched users above historical users.
     """
-    # Fetch matched users
+    # Step 1: Fetch matched users and deduplicate
     matched_users = get_session_users(user_id)
+    seen_usernames = set()
+    unique_matched_users = []
 
-    # Convert matched users to a dictionary for lookup
-    matched_usernames = {user["USERNAME"]: user for user in matched_users}
+    for user in matched_users:
+        if user["USERNAME"] not in seen_usernames:
+            unique_matched_users.append(user)
+            seen_usernames.add(user["USERNAME"])
 
-    # Initialize matched users list with most recent message timestamps
-    matched_with_messages = []
-    for matched_user in matched_users:
+    matched_usernames = {user["USERNAME"]: user for user in unique_matched_users}  # Dict for lookup
+
+    # Initialize contacts list
+    contacts = []
+
+    # Process matched users
+    for matched_user in unique_matched_users:
         username = matched_user["USERNAME"]
 
-        # Check for most recent message with this matched user
+        # Fetch the most recent message with the matched user
         recent_message = db.session.query(models.Messaging).filter(
             (models.Messaging.sender_id == user_id) & (models.Messaging.receiver_id == username) |
             (models.Messaging.sender_id == username) & (models.Messaging.receiver_id == user_id)
         ).order_by(models.Messaging.time_sent.desc()).first()
 
         if recent_message:
-            # Add matched user with message history
-            matched_with_messages.append({
+            # Add matched user with actual message history
+            contacts.append({
                 "FIRSTNAME": matched_user["FIRST_NAME"],
                 "LASTNAME": matched_user["LAST_NAME"],
                 "USERNAME": username,
                 "LASTMESSAGE": recent_message.message,
-                "TIMESTAMP": recent_message.time_sent.strftime("%Y-%m-%dT%H:%M:%SZ")
+                "TIMESTAMP": recent_message.time_sent.strftime("%Y-%m-%dT%H:%M:%SZ"),
+                "IS_MATCHED": True  # Indicate this is a matched user
             })
         else:
             # Add matched user with placeholder message
-            matched_with_messages.append({
+            contacts.append({
                 "FIRSTNAME": matched_user["FIRST_NAME"],
                 "LASTNAME": matched_user["LAST_NAME"],
                 "USERNAME": username,
-                "LASTMESSAGE": "SYSTEM: You have a match!", # Add a message notifying users of their new matches they haven't yet spoken to
-                "TIMESTAMP": ""  # No timestamp for new matches (hopefully this doesn't break the android side)
+                "LASTMESSAGE": "SYSTEM: You have a match!",
+                "TIMESTAMP": "",  # No timestamp for new matches
+                "IS_MATCHED": True  # Indicate this is a matched user
             })
 
-    # Sort matched users by timestamp (newest first)
-    matched_with_messages.sort(
-        key=lambda x: x["TIMESTAMP"] or "0000-00-00T00:00:00Z", reverse=True
-    )
-
-    # Fetch historical contacts
+    # Step 2: Fetch historical users
     sent_to_user = db.session.query(models.Messaging.receiver_id).filter(
         models.Messaging.sender_id == user_id
     ).distinct()
@@ -185,14 +182,12 @@ def fetch_contacts(user_id):
         models.Messaging.receiver_id == user_id
     ).distinct()
 
+    # Combine all unique contact IDs
     contact_ids = set([row[0] for row in sent_to_user] + [row[0] for row in received_from_user])
 
-    # Filter out users already in matched list (since current matches you've already spoken to would appear in both)
-    contact_ids -= set(matched_usernames.keys())
-
-    historical_contacts = []
+    # Process historical contacts
     for contact_id in contact_ids:
-        # Get the most recent message with this contact
+        # Fetch the most recent message with the historical user
         recent_message = db.session.query(models.Messaging).filter(
             (models.Messaging.sender_id == user_id) & (models.Messaging.receiver_id == contact_id) |
             (models.Messaging.sender_id == contact_id) & (models.Messaging.receiver_id == user_id)
@@ -203,22 +198,36 @@ def fetch_contacts(user_id):
             contact_personal_info = models.PersonalInformation.query.filter_by(user_id=contact_id).one_or_none()
 
             if contact_login_info and contact_personal_info:
-                historical_contacts.append({
-                    "FIRSTNAME": contact_personal_info.first_name,
-                    "LASTNAME": contact_personal_info.last_name,
-                    "USERNAME": contact_login_info.username,
-                    "LASTMESSAGE": recent_message.message,
-                    "TIMESTAMP": recent_message.time_sent.strftime("%Y-%m-%dT%H:%M:%SZ")
-                })
+                username = contact_login_info.username
 
-    # Sort historical contacts by timestamp (newest first)
-    historical_contacts.sort(
-        key=lambda x: x["TIMESTAMP"], reverse=True
+                # Check if this user is already in the matched list
+                existing_matched_user = next((contact for contact in contacts if contact["USERNAME"] == username), None)
+
+                if existing_matched_user:
+                    # Update the message and timestamp for the matched user
+                    existing_matched_user["LASTMESSAGE"] = recent_message.message
+                    existing_matched_user["TIMESTAMP"] = recent_message.time_sent.strftime("%Y-%m-%dT%H:%M:%SZ")
+                else:
+                    # Add the historical contact as a new entry
+                    contacts.append({
+                        "FIRSTNAME": contact_personal_info.first_name,
+                        "LASTNAME": contact_personal_info.last_name,
+                        "USERNAME": username,
+                        "LASTMESSAGE": recent_message.message,
+                        "TIMESTAMP": recent_message.time_sent.strftime("%Y-%m-%dT%H:%M:%SZ"),
+                        "IS_MATCHED": False  # Indicate this is a historical user
+                    })
+
+    # Step 3: Sort contacts
+    # 1. Matched users come first
+    # 2. Within each group, sort by timestamp (newest first)
+    contacts.sort(
+        key=lambda x: (
+            x["IS_MATCHED"],  # matched users comes first
+            x["TIMESTAMP"] or "0000-00-00T00:00:00Z"  # Sort empty timestamps last
+        ),
+        reverse=True
     )
 
-    # Combine matched users and historical contacts so that the current matches are first
-    combined_contacts = matched_with_messages + historical_contacts
-
-    return {"CONTACTS": combined_contacts}
-
-# NEED TO CREATE AN ACCOUNT THAT IS MATCHED WITH SOME USERS, BUT ALSO HAS HISTORICAL CONVERSATIONS WITH OTHER USERS SO I CAN PROPERLY TEST THIS
+    # Step 4: Return the combined list
+    return {"CONTACTS": contacts}
